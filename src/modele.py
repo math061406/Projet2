@@ -1,15 +1,14 @@
+import joblib
+import json
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import OneHotEncoder
-import joblib
-import json
 
 
-def entrainer(X_train:np.ndarray,y_train:np.ndarray)-> LinearRegression:
+def train(X_train:np.ndarray,y_train:np.ndarray)-> LinearRegression:
     """ Entraîne un modèle de régression linéaire sur les données fournies
         
         Paramètres
@@ -23,6 +22,7 @@ def entrainer(X_train:np.ndarray,y_train:np.ndarray)-> LinearRegression:
     modele = LinearRegression()
     modele.fit(X_train,y_train)
     return modele  
+
 def eval(model:LinearRegression,X_val : np.ndarray,y_val:np.ndarray):
     """ Évalue les performances du modèle sur un ensemble de validation
     mse : erreur quadratique moyenne 
@@ -32,6 +32,14 @@ def eval(model:LinearRegression,X_val : np.ndarray,y_val:np.ndarray):
     mse = mean_squared_error(y_val,y_pred)
     return mse 
 
+def save_model_with_metadata(model,model_path,meta_path,model_metadata):
+    '''Cette fonction sauvegarde le modèle et ses données du model dans un fichier JSON.'''
+    #sauvegarder le modèle 
+    joblib.dump(model,open(model_path,'wb'))
+
+    # Fichier json de métadonnées 
+    with open(meta_path,'w',encoding='utf-8') as f:
+        json.dump(model_metadata,f,indent=2)
 def main(test_ratio: float = 0.2, random_state: int = 0):
     # transforme le fichier csv en un un tableau structuré appelé dataframe 
     df = pd.read_csv("donnees/restaurant_data_nettoye.csv")
@@ -61,21 +69,30 @@ def main(test_ratio: float = 0.2, random_state: int = 0):
 
     # mélange les données de manière aléatoire 
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=test_ratio, random_state=random_state)
-    model = entrainer(X_train,y_train)
+    model = train(X_train,y_train)
     mse = eval(model,X_val,y_val)
 
-    filename = 'donnees/model_linear.sav'
-    #sauvegarder le modèle 
-    joblib.dump(model,open(filename,'wb'))
-
-    # Extraire les paramètre mathématiques pour pouvoir prédire les une valeur plus tard 
-    model_data = {
-        "coefficients": model.coef_.tolist(),
-        "intercept": float(model.intercept_),
-        "mse" : mse
+    model_path = 'donnees/model_linear.sav'
+    meta_path = 'donnees/model.json'
+    model_metadata = {
+        'nom_colonnes': [titre for titre in df.columns],
+        'valeurs_location': [variable_possible for variable_possible in df['Location'].unique()],
+        'valeurs_cuisine' : [variable_possible for variable_possible in df['Cuisine'].unique()],
+        'erreur quadratique moyenne ' : mse
     }
-    with open("donnees/model_parameters.json", "w") as f:
-        json.dump(model_data,f,indent=2)
-# Prediction = (input1 x coeff1) + (input2 x coeff2) + (input3 x coeff3) + ... + intercept 
+    save_model_with_metadata(model,model_path,meta_path,model_metadata)
+
+    
+    
+# NOTE: Voir si cette méthode est accéptée 
+#     # Extraire les paramètre mathématiques pour pouvoir prédire les une valeur plus tard 
+#     model_data = {
+#         "coefficients": model.coef_.tolist(),
+#         "intercept": float(model.intercept_),
+#         "mse" : mse
+#     }
+#     with open("donnees/model_parameters.json", "w",encoding='utf-8) as f:
+#         json.dump(model_data,f,indent=2)
+# # Prediction = (input1 x coeff1) + (input2 x coeff2) + (input3 x coeff3) + ... + intercept
 if __name__ == "__main__":
     main()

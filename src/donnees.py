@@ -1,8 +1,11 @@
-import csv
 import os
-#Lecture du fichier CSV et création d'un nouveau fichier CSV avec un nettoyage des données
+import csv
+
 
 def nettoyage(fichier_csv):
+    '''Lecture du fichier CSV et création d'un nouveau 
+    fichier CSV avec un nettoyage des données
+ '''
     with open(fichier_csv, 'r', encoding="UTF-8") as f1:
         reader = csv.reader(f1)
         with open(os.path.join("donnees", "restaurant_data_nettoye.csv"), "w", newline="", encoding="UTF-8") as f2:
