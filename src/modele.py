@@ -2,6 +2,7 @@ import joblib
 import json
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
@@ -40,6 +41,10 @@ def save_model_with_metadata(model,model_path,meta_path,model_metadata):
     # Fichier json de métadonnées 
     with open(meta_path,'w',encoding='utf-8') as f:
         json.dump(model_metadata,f,indent=2)
+def plot(model: LinearRegression,X,y):
+    '''draw the plot to verify the model'''
+    plt.scatter(X,y)
+    plt.show()
 def main(test_ratio: float = 0.2, random_state: int = 0):
     # transforme le fichier csv en un un tableau structuré appelé dataframe 
     df = pd.read_csv("donnees/restaurant_data_nettoye.csv")
@@ -47,7 +52,7 @@ def main(test_ratio: float = 0.2, random_state: int = 0):
     # Transformer les données qualitaves en format numériques pour pouvoir entrainer le modèle
     # Créer différente colonne pour chaque options d'une catégorie et 
     # affiche 1 si l'option est présente à cette ligne et 0 si elle est abscente 
-    categorical_columns = df.select_dtypes(include=['str']).columns     #Sélectionne les colonnes avec des données qualitatives 
+    categorical_columns = df.select_dtypes(include=['string']).columns     #Sélectionne les colonnes avec des données qualitatives 
     encoder = OneHotEncoder(sparse_output=False)
     encoded_data = encoder.fit_transform(df[categorical_columns])
     encoded_df = pd.DataFrame( encoded_data, columns=encoder.get_feature_names_out(categorical_columns))
@@ -72,6 +77,7 @@ def main(test_ratio: float = 0.2, random_state: int = 0):
     model = train(X_train,y_train)
     mse = eval(model,X_val,y_val)
 
+    # Sauvegarder le modèle 
     model_path = 'donnees/model_linear.sav'
     meta_path = 'donnees/model.json'
     model_metadata = {
@@ -81,6 +87,8 @@ def main(test_ratio: float = 0.2, random_state: int = 0):
         'erreur quadratique moyenne ' : mse
     }
     save_model_with_metadata(model,model_path,meta_path,model_metadata)
+    print(X.shape,y.shape)
+    #plot(model,X,y)
 
     
     

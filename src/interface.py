@@ -13,6 +13,7 @@ class RPFApp(ctk.CTk):
         self.title("RPF - Restaurant Price Finder")
         self.geometry("1100x700")
         self.minsize(900, 600)
+        
 
         # Couleurs
         self.bg_color = "#F4F6F9"
