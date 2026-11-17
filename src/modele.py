@@ -120,8 +120,8 @@ class MODEL:
             json.dump(model_metadata,f,indent=2)
 
 class DRAW_MODEL(MODEL):
-    def __init__(self, name_model = None, target_variable = "Average Meal Price", test_ratio = 0.2, random_state = 0):
-        super().__init__(name_model, target_variable, test_ratio, random_state)
+    def __init__(self, target_variable = "Average Meal Price", test_ratio = 0.2, random_state = 0):
+        super().__init__( target_variable, test_ratio, random_state)
     
     def plot_prediction(self,y_val,y_pred):
         """

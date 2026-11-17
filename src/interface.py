@@ -1,9 +1,7 @@
 import customtkinter as ctk
 from exceptions import DonnéeErronéeError, NomDéjaInscritError
-from modele import MODEL
-import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from modele import DRAW_MODEL
+from modele import MODEL
 import pandas as pd
 import json 
 import joblib
@@ -49,8 +47,8 @@ class RPFApp(ctk.CTk):
 
         #Création modèle
         self._modele = MODEL()
-        self._modele.model = joblib.load("donnees/model_linear.sav")
-        self._colonnes_modele = self._modele.model.feature_names_in_
+        self._load_modele = joblib.load(open("donnees/model_linear.sav",'rb'))
+        self._colonnes_modele = self._load_modele.feature_names_in_
 
         #Aller chercher les informations du fichier json
         with open("donnees/model.json", "r", encoding="utf-8") as f:
@@ -684,16 +682,18 @@ class RPFApp(ctk.CTk):
         # Transformation des données
         liste_valeurs = self._modele.transform(
             liste_valeurs,
-            is_training=True
+            is_training=False
         )
+        print(liste_valeurs)
 
         liste_valeurs = liste_valeurs.reindex(
             columns=self._colonnes_modele,
             fill_value=0
         )
-
-        prediction = self._modele.model.predict(liste_valeurs)
-
+        print(liste_valeurs)
+        
+        prediction = self._load_modele.predict(liste_valeurs)
+        
         donnees["Average Meal Price"] = round(float(prediction[0]), 2)
 
         # Démonstration : 2,5 secondes
@@ -723,7 +723,7 @@ class RPFApp(ctk.CTk):
         self.clear_content()
 
         # Sauvegarde automatique de l'analyse si on ne vient pas de l'historique
-        if not donnees in self._historique:
+        if donnees not in self._historique:
             self.ajouter_historique(donnees)
 
         # En-tête
