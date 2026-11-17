@@ -2,10 +2,10 @@
   "nom_colonnes": [
     "Location",
     "Cuisine",
-    "Rating",
+    "Seating Capacity",
     "Average Meal Price",
-    "Social Media Followers",
-    "Chef Experience Years"
+    "Chef Experience Years",
+    "Revenue"
   ],
   "valeurs_location": [
     "Rural",
@@ -20,5 +20,5 @@
     "French",
     "American"
   ],
-  "erreur quadratique moyenne ": 10.152628566882285
+  "erreur quadratique moyenne ": 15.981903739945881
 }
