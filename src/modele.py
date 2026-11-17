@@ -18,45 +18,54 @@ class MODEL:
         self.target_variable = target_variable
         self.test_ratio = test_ratio
         self.random_state = random_state
+        self.encoder = OneHotEncoder(sparse_output=False)
 
         self.model = LinearRegression()
+        self.columns_names_raw = []
+        self.columns_names = []
         self.metrique = 0 
 
     def transform(self,df:pd.DataFrame, is_training:True)->pd.DataFrame:
         """
-            Transformer les données qualitaves en format numériques pour pouvoir entrainer le modèle
-            Créer différente colonne pour chaque options d'une catégorie et 
-            affiche 1 si l'option est présente à cette ligne et 0 si elle est abscente
+            Transformer les données qualitaves en format numériques pour pouvoir entrainer le modèle.
+            
+                - Créer différente colonne pour chaque options d'une catégorie et 
+                   affiche 1 si l'option est présente à cette ligne et 0 si elle est abscente
+            is_training:
+                Si vrai on ajuste l'encodeur 
+                Sinon, on l'utiliser tel quel et on aligne les colonnes sur celles de l'entrainement
         """
          
-        encoder = OneHotEncoder(sparse_output=False)
+        # Sélectionne les colonnes avec des données qualitatives  
+        categorical_columns = df.select_dtypes(include=['object','string']).columns
         if is_training:
-            # Sélectionne les colonnes avec des données qualitatives  
-            categorical_columns = df.select_dtypes(include=['string','object']).columns 
-            encoded_data = encoder.fit_transform(df[categorical_columns])
+            encoded_data = self.encoder.fit_transform(df[categorical_columns])
+            encoded_df = pd.DataFrame(encoded_data, columns=self.encoder.get_feature_names_out(categorical_columns))
+            new_df = pd.concat([df.drop(columns=categorical_columns), encoded_df],axis=1)
+            self.columns_names = list(new_df)
+            return new_df
         else:
-            encoded_data = encoder.transform(df[categorical_columns])
-
-        encoded_df = pd.DataFrame(encoded_data, columns=encoder.get_feature_names_out(categorical_columns))
-        new_df = pd.concat([df.drop(columns=categorical_columns), encoded_df],axis=1)
-
-        return new_df
+            encoded_data = self.encoder.transform(df[categorical_columns])
+            encoded_df = pd.DataFrame(encoded_data, columns=self.encoder.get_feature_names_out(categorical_columns))
+            new_df = pd.concat([df.drop(columns=categorical_columns), encoded_df],axis=1)
+            new_df = new_df[self.columns_names]
+            return new_df
     
     def train_and_eval(self,df: pd.DataFrame):
         """ 
-        Entraîne un modèle de régression linéaire sur les données fournies    
-        Paramètres
-        X_train: 
-        Matrice des varaiables explicatives pour l'entraînement,
-        de forme 
-        y_train :
-        Vecteurs des valeurs cibles d'entrainement,
-        de formes (n_samples)
+            Entraîne un modèle de régression linéaire sur les données fournies    
+            Paramètres
+            X_train: 
+            Matrice des varaiables explicatives pour l'entraînement,
+            de forme 
+            y_train :
+            Vecteurs des valeurs cibles d'entrainement,
+            de formes (n_samples)
         """
         """ 
-        Évalue les performances du modèle sur un ensemble de validation
-        mse : erreur quadratique moyenne 
-        plus le mse est faible, plus le modèle est précis 
+            Évalue les performances du modèle sur un ensemble de validation
+            mse : erreur quadratique moyenne 
+            plus le mse est faible, plus le modèle est précis 
         """
         X_raw = df.drop(columns =[self.target_variable])
         y = df[self.target_variable]
@@ -72,14 +81,18 @@ class MODEL:
         X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=self.test_ratio, random_state=self.random_state)
 
         self.model.fit(X_train,y_train)
-
         y_pred = self.model.predict(X_val)
         mse = mean_squared_error(y_val,y_pred)
+
+        self.columns_names_raw = list(df.columns)
         self.metrique = mse 
         return self.metrique, y_val, y_pred
 
-    def predict(self,user_input: pd.DataFrame) -> np.ndarray:
+    def predict(self,user_input_raw: pd.DataFrame) -> np.ndarray:
         """ Cette fonction prédit une variable selon les données entrées par l'utilisateur"""
+        new_columns = self.columns_names_raw[:]
+        new_columns.remove(self.target_variable)
+        user_input = pd.DataFrame([user_input_raw],columns=new_columns)
         X_user = self.transform(user_input,is_training= False)
         return self.model.predict(X_user)
 
@@ -92,7 +105,7 @@ class MODEL:
         joblib.dump(self.model,open(model_path,'wb'))
 
         model_metadata = {
-                'nom_colonnes': [titre for titre in df.columns],
+                'nom_colonnes': self.columns_names_raw,
                 'valeurs_location': [variable_possible for variable_possible in df['Location'].unique()],
                 'valeurs_cuisine' : [variable_possible for variable_possible in df['Cuisine'].unique()],
                 'erreur quadratique moyenne ' : self.metrique
@@ -107,8 +120,8 @@ class DRAW_MODEL(MODEL):
     
     def plot_prediction(self,y_val,y_pred):
         """
-        Cette fonction créer une digramme qui montre les valeurs 
-        réelles en fonction des valeurs prédites et la droite de régression linéaire.
+            Cette fonction créer une digramme qui montre les valeurs 
+            réelles en fonction des valeurs prédites et la droite de régression linéaire.
         """
 
         plt.figure(figsize=(7,5))                   #Initialise la taille de l'écran 
@@ -123,8 +136,8 @@ class DRAW_MODEL(MODEL):
 
     def plot_correlation_heatmap(self,df:pd.DataFrame):
         """
-        Cette fonction montre les lien de corrélation entre 
-        les différentes variables du jeu de données 
+            Cette fonction montre les lien de corrélation entre 
+            les différentes variables du jeu de données 
         """
         plt.figure(figsize=(8, 6))
         
@@ -145,11 +158,15 @@ if __name__ == "__main__":
     df = pd.read_csv("donnees/restaurant_data_nettoye.csv")
 
     # 2. Instanciation et entraînement via la classe
-    createur_modele = MODEL(target_variable="Average Meal Price", test_ratio=0.2, random_state=0)
-    mse, X_val, y_val = createur_modele.train_and_eval(df)
+    modele = MODEL(target_variable="Average Meal Price", test_ratio=0.2, random_state=0)
+    mse, X_val, y_val = modele.train_and_eval(df)
     print(f"Modèle entraîné avec succès. MSE : {mse:.2f}")
 
     # 3. Sauvegarde
-    createur_modele.save(df, 'donnees/model_linear.sav', 'donnees/model.json')
+    modele.save(df, 'donnees/model_linear.sav', 'donnees/model.json')
 
+    # 4. Test de prédiction.
+    user_input = ["Rural","Mexican",100,17,500000]
+    prix_repas = modele.predict(user_input)
+    print(prix_repas)
     
