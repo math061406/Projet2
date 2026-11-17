@@ -702,6 +702,19 @@ class RPFApp(ctk.CTk):
             lambda: self.afficher_resultats(donnees)
         )
 
+    def afficher_figure(self, figure, parent):
+
+        canvas = FigureCanvasTkAgg(figure, master=parent)
+
+        canvas.draw()
+
+        canvas.get_tk_widget().pack(
+            fill="both",
+            expand=True,
+            padx=10,
+            pady=10
+        )
+
     def afficher_resultats(self, donnees : dict):
         """Une fois le temps de chargement terminé, cette méthode est appelé. Elle efface l'ancien contenu 
         et ajoute les données récoltés après le téléchargement incluant le prix estimé selon les caractéristiques.
