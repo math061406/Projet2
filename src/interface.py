@@ -1,4 +1,6 @@
 import customtkinter as ctk
+from exceptions import DonnéeErronéeError, NomDéjaInscritError
+import json 
 
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
@@ -6,7 +8,14 @@ ctk.set_default_color_theme("blue")
 
 class RPFApp(ctk.CTk):
 
+
+    #Initialisation
     def __init__(self):
+        """ Initialisation de la classe application avec comme parent la librairie de customTkinter.
+        On définit le titre, la taille de la fenêtre, et la grandeur minimum que l'utilisateur peut avoir.
+        On définit les couleurs et les méthodes que l'on appelle dès le lancement de l'application ainsi que
+        l'historique que l'on souhaite avoir selon le fichier json. À partir du fichier json model, on initialise trois valeurs
+        dans 3 attributs. """
         super().__init__()
 
         # Fenêtre principale
@@ -27,65 +36,76 @@ class RPFApp(ctk.CTk):
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
-        # Création du menu et de la page
+        # Création du menu latéral, de l'historique et de la page d'accueil
+        self._historique = self.charger_historique()
         self.create_sidebar()
         self.show_home()
+
+        #Aller chercher les informations du fichier json
+        with open("donnees/model.json", "r", encoding="utf-8") as f:
+            model = json.load(f)
+            self._liste_catégories = model["nom_colonnes"]
+            self._liste_location = model["valeurs_location"]
+            self._liste_cuisine = model["valeurs_cuisine"]
 
     # -----------------------------
     # MENU LATERAL
     # -----------------------------
 
     def create_sidebar(self):
-
-        self.sidebar = ctk.CTkFrame(
+        """Cette méthode sert à créer un menu latéral à gauche de la fenêtre où l'on va pouvoir retrouvé le nom de l'application
+        (Label) et son logo (Label), le bouton d'accueil, le bouton de nouvelle analyse et le bouton d'historique des analyses.
+        Le menu latéral est sous forme de grille qui change de grandeur selon la grandeur de la fenêtre."""
+        self._sidebar = ctk.CTkFrame(
         self,
         width=240,
         corner_radius=0,
         fg_color=self.sidebar_color
         )
 
-        self.sidebar.grid(row=0, column=0, sticky="nsew")
-        self.sidebar.grid_propagate(False)
+        self._sidebar.grid(row=0, column=0, sticky="nsew")
+        self._sidebar.grid_propagate(False)
 
         # Nom de l'application
-        self.logo = ctk.CTkLabel(
-        self.sidebar,
+        self._logo = ctk.CTkLabel(
+        self._sidebar,
         text="RPF",
         font=("Arial", 32, "bold"),
         text_color=self.primary_color
         )
 
-        self.logo.pack(pady=(35, 5))
+        self._logo.pack(pady=(35, 5))
 
-        self.subtitle = ctk.CTkLabel(
-        self.sidebar,
+        self._subtitle = ctk.CTkLabel(
+        self._sidebar,
         text="Restaurant Price Finder",
         font=("Arial", 11),
         text_color="gray"
         )
 
-        self.subtitle.pack(pady=(0, 40))
+        self._subtitle.pack(pady=(0, 40))
 
         # Boutons du menu
-        self.home_button = ctk.CTkButton(
-        self.sidebar,
-        text="🏠 Accueil",
+        self._home_button = ctk.CTkButton(
+        self._sidebar,
+        text="🏠 Home",
         height=45,
         corner_radius=12,
-        fg_color=self.primary_color,
-        hover_color="#24466D",
+        fg_color="transparent",
+        text_color=self.text_color,
+        hover_color="#E8EEF5",
         anchor="w",
         font=("Arial", 14),
         command=self.show_home
         )
 
-        self.home_button.pack(
+        self._home_button.pack(
         fill="x", padx=20, pady=8
         )
 
-        self.analysis_button = ctk.CTkButton(
-        self.sidebar,
-        text="＋ Nouvelle analyse",
+        self._analysis_button = ctk.CTkButton(
+        self._sidebar,
+        text="＋ New Analysis",
         height=45,
         corner_radius=12,
         fg_color="transparent",
@@ -96,13 +116,13 @@ class RPFApp(ctk.CTk):
         command=self.show_new_analysis
         )
 
-        self.analysis_button.pack(
+        self._analysis_button.pack(
         fill="x", padx=20, pady=8
         )
 
-        self.history_button = ctk.CTkButton(
-        self.sidebar,
-        text="⏰ Historique analyse",
+        self._history_button = ctk.CTkButton(
+        self._sidebar,
+        text="⏰ History of Analysis",
         height=45,
         corner_radius=12,
         fg_color="transparent",
@@ -113,26 +133,30 @@ class RPFApp(ctk.CTk):
         command=self.show_history
         )
 
-        self.history_button.pack(
+        self._history_button.pack(
         fill="x", padx=20, pady=8
         )
 
- # -----------------------------
- # ZONE PRINCIPALE
- # -----------------------------
+
+# -----------------------------
+# ZONE PRINCIPALE
+# -----------------------------
 
     def clear_content(self):
-
+        """Cette méthode sert à effacer le contenu retrouvé dans la page actuel lorsque l'on clique sur un bouton différent du menu latéral
+        ou du bouton pour lancer une prédiction ou à la fin du temps d'attente. Ainsi, le contenu se fait effacer et prépare une nouvelle
+        "Frame" qui se fera modifié selon la méthode ayant appelé "clear_content" ."""
         if hasattr(self, "content"):
-            self.content.destroy()
+            self._content.destroy()
 
-        self.content = ctk.CTkFrame(
+        
+        self._content = ctk.CTkFrame(
         self,
         fg_color=self.bg_color,
         corner_radius=0
         )
 
-        self.content.grid(
+        self._content.grid(
         row=0,
         column=1,
         sticky="nsew",
@@ -145,13 +169,15 @@ class RPFApp(ctk.CTk):
         # -----------------------------
 
     def show_home(self):
-
+        """Cette méthode se produit lorsque le bouton "Home" du menu d'accueil est activé par l'utilisateur. À ce moment, le contenu
+        se fait effacé avec la méthode "clear_content" et crée un nouveau contenu contenant différentes informations sur notre application.
+        """
         self.clear_content()
 
         # Titre
         title = ctk.CTkLabel(
-        self.content,
-        text="Accueil",
+        self._content,
+        text="Home",
         font=("Arial", 30, "bold"),
         text_color=self.text_color
         )
@@ -160,7 +186,7 @@ class RPFApp(ctk.CTk):
 
         # Section À propos
         about_frame = ctk.CTkFrame(
-        self.content,
+        self._content,
         fg_color="white",
         corner_radius=15
         )
@@ -169,7 +195,7 @@ class RPFApp(ctk.CTk):
 
         about_title = ctk.CTkLabel(
         about_frame,
-        text="À propos",
+        text="About this website",
         font=("Arial", 19, "bold"),
         text_color=self.primary_color
         )
@@ -179,8 +205,8 @@ class RPFApp(ctk.CTk):
         about_text = ctk.CTkLabel(
         about_frame,
         text=(
-        "RPF est une application servant à prédire le prix "
-        "moyen d'un restaurant selon ses caractéristiques."
+        "RPF is an application used to guess the average price of "
+        "a meal at a restaurant depending on his features."
         ),
         font=("Arial", 15),
         text_color=self.text_color,
@@ -192,7 +218,7 @@ class RPFApp(ctk.CTk):
 
         # Section caractéristiques
         features_frame = ctk.CTkFrame(
-        self.content,
+        self._content,
         fg_color="white",
         corner_radius=15
         )
@@ -201,7 +227,7 @@ class RPFApp(ctk.CTk):
 
         features_title = ctk.CTkLabel(
         features_frame,
-        text="Caractéristiques utilisées (5)",
+        text="Features used (5)",
         font=("Arial", 19, "bold"),
         text_color=self.primary_color
         )
@@ -209,11 +235,11 @@ class RPFApp(ctk.CTk):
         features_title.pack(anchor="w", padx=25, pady=(20, 15))
 
         features = [
-        "• Localisation (Ville, Banlieue, Campagne)",
-        "• Note attribué au restaurant sur 5",
-        "• Nombre d'années d'expérience des chefs",
-        "• Type de cuisine (Français, Américain, Italien, Mexicain, Indien)",
-        "• Nombre d'abonnées du restaurant sur les réseaux sociaux"
+        "• Location (Downtown, Suburban, Rural)",
+        "• Type of cuisine (French, American, Italian, Mexican, Indian)",
+        "• Seating Capacity",
+        "• Average of years the chefs experiences are",
+        "• Annual revenue of the restaurant"
         ]
 
         for feature in features:
@@ -234,29 +260,50 @@ class RPFApp(ctk.CTk):
         ).pack()
     
     def show_new_analysis(self):
+        """Cette méthode est appelé lorsque l'utilisateur clique sur le bouton "Nouvelle analyse". On efface donc l'ancien contenu, mais 
+        on n'utilise pas la méthode "clear_content", puisque cette méthode crée un "frame" rédulier, ce qui, fonctionne pour chaque page
+        excepté celle-ci où l'on veut un "ScrollableFrame" pour pouvoir dérouler vers les options si la fenêtre est réduite. Cette méthode
+        crée 6 questions en "Entry" ou "OptionMenu" pour les données qualitatives. On enregistre chacune des données dans la classe comme
+        attributs pour être réutiliser lors de l'appui du lancement de la prédiction. """
+        # Conteneur défilable uniquement pour cette page
+        
+        if hasattr(self, "content"):
+            self._content.destroy()
 
-        self.clear_content()
+        self._content = ctk.CTkScrollableFrame(
+                self,
+                fg_color=self.bg_color,
+                corner_radius=0
+                )
+
+        self._content.grid(
+                row=0,
+                column=1,
+                sticky="nsew",
+                padx=30,
+                pady=30
+                )
 
         # -----------------------------
         # EN-TÊTE
         # -----------------------------
 
         header = ctk.CTkFrame(
-            self.content,
+            self._content,
             fg_color="transparent"
         )
         header.pack(fill="x", pady=(5, 25))
 
         ctk.CTkLabel(
             header,
-            text="Nouvelle analyse",
+            text="New analysis",
             font=("Arial", 30, "bold"),
             text_color=self.text_color
         ).pack(anchor="w")
 
         ctk.CTkLabel(
             header,
-            text="Renseignez les informations du restaurant pour estimer son prix moyen.",
+            text="Please fill out the information to guess the average price of a meal",
             font=("Arial", 13),
             text_color="#8994A3"
         ).pack(anchor="w", pady=(5, 0))
@@ -266,7 +313,7 @@ class RPFApp(ctk.CTk):
         # -----------------------------
 
         main_frame = ctk.CTkFrame(
-            self.content,
+            self._content,
             fg_color="white",
             corner_radius=15,
             border_width=1,
@@ -278,17 +325,38 @@ class RPFApp(ctk.CTk):
         # Titre du formulaire
         ctk.CTkLabel(
             main_frame,
-            text="Informations du restaurant",
+            text="Restaurant information",
             font=("Arial", 18, "bold"),
             text_color=self.text_color
         ).pack(anchor="w", padx=30, pady=(25, 5))
 
         ctk.CTkLabel(
             main_frame,
-            text="Les cinq caractéristiques nécessaires à la prédiction.",
+            text="The 5 features are needed for the prediction.",
             font=("Arial", 12),
             text_color="#8994A3"
         ).pack(anchor="w", padx=30, pady=(0, 20))
+
+        # Nom de l'analyse
+
+        ctk.CTkLabel(
+            main_frame,
+            text="Analysis name",
+            font=("Arial", 13, "bold"),
+            text_color="#344054"
+        ).pack(anchor="w", padx=30, pady=(5, 7))
+
+        self._nom_analyse = ctk.CTkEntry(
+            main_frame,
+            placeholder_text="Ex. Italian restaurant - Downtown",
+            height=42,
+            corner_radius=8,
+            fg_color="#F7F8FA",
+            border_color="#E5E9EF",
+            text_color=self.text_color
+        )
+
+        self._nom_analyse.pack(fill="x", padx=30, pady=(0, 15))
 
         # -----------------------------
         # GRILLE DES CHAMPS
@@ -307,9 +375,8 @@ class RPFApp(ctk.CTk):
         entry_color = "#F7F8FA"
         border_color = "#E5E9EF"
 
-        # Fonction pour créer un titre de champ
-        def field_label(parent, text, row, column):
-
+        def field_label(parent : ctk.CTkFrame, text : str, row : int, column : int):
+            """Crée un titre de champ à un emplacement selon une grille où l'on place chacun des 5 caractéristiques."""
             ctk.CTkLabel(
                 parent,
                 text=text,
@@ -323,12 +390,12 @@ class RPFApp(ctk.CTk):
                 padx=(0, 20)
             )
 
-        # 1. Localisation
-        field_label(fields, "Localisation", 0, 0)
+        # 1. Location
+        field_label(fields, "Location", 0, 0)
 
-        self.localisation = ctk.CTkOptionMenu(
+        self._location = ctk.CTkOptionMenu(
             fields,
-            values=["Ville", "Banlieue", "Campagne"],
+            values=self._liste_location,
             height=42,
             corner_radius=8,
             fg_color=entry_color,
@@ -339,18 +406,18 @@ class RPFApp(ctk.CTk):
             dropdown_text_color=self.text_color
         )
 
-        self.localisation.grid(
+        self._location.grid(
             row=1, column=0,
             sticky="ew",
             padx=(0, 20)
         )
 
-        # 2. Note
-        field_label(fields, "Note du restaurant (sur 5)", 0, 1)
+        # 2. Seating Capacity
+        field_label(fields, "Seating Capacity", 0, 1)
 
-        self.note = ctk.CTkEntry(
+        self._seating_capacity = ctk.CTkEntry(
             fields,
-            placeholder_text="Ex. 4.5",
+            placeholder_text="Ex. 40",
             height=42,
             corner_radius=8,
             fg_color=entry_color,
@@ -358,15 +425,15 @@ class RPFApp(ctk.CTk):
             text_color=self.text_color
         )
 
-        self.note.grid(
+        self._seating_capacity.grid(
             row=1, column=1,
             sticky="ew"
         )
 
         # 3. Expérience
-        field_label(fields, "Expérience des chefs (années)", 2, 0)
+        field_label(fields, "Average of chefs experience in years", 2, 0)
 
-        self.experience = ctk.CTkEntry(
+        self._experience = ctk.CTkEntry(
             fields,
             placeholder_text="Ex. 8",
             height=42,
@@ -376,24 +443,18 @@ class RPFApp(ctk.CTk):
             text_color=self.text_color
         )
 
-        self.experience.grid(
+        self._experience.grid(
             row=3, column=0,
             sticky="ew",
             padx=(0, 20)
         )
 
         # 4. Cuisine
-        field_label(fields, "Type de cuisine", 2, 1)
+        field_label(fields, "Type of cuisine", 2, 1)
 
-        self.cuisine = ctk.CTkOptionMenu(
+        self._cuisine = ctk.CTkOptionMenu(
             fields,
-            values=[
-                "Français",
-                "Américain",
-                "Italien",
-                "Mexicain",
-                "Indien"
-            ],
+            values=self._liste_cuisine,
             height=42,
             corner_radius=8,
             fg_color=entry_color,
@@ -404,17 +465,17 @@ class RPFApp(ctk.CTk):
             dropdown_text_color=self.text_color
         )
 
-        self.cuisine.grid(
+        self._cuisine.grid(
             row=3, column=1,
             sticky="ew"
         )
 
-        # 5. Abonnés
-        field_label(fields, "Nombre d'abonnés", 4, 0)
+        # 5. Revenue 
+        field_label(fields, "Annual Revenue of the restaurant", 4, 0)
 
-        self.abonnes = ctk.CTkEntry(
+        self._revenue = ctk.CTkEntry(
             fields,
-            placeholder_text="Ex. 25000",
+            placeholder_text="Ex. 500000",
             height=42,
             corner_radius=8,
             fg_color=entry_color,
@@ -422,7 +483,7 @@ class RPFApp(ctk.CTk):
             text_color=self.text_color
         )
 
-        self.abonnes.grid(
+        self._revenue.grid(
             row=5, column=0,
             sticky="ew",
             padx=(0, 20)
@@ -455,7 +516,7 @@ class RPFApp(ctk.CTk):
 
         ctk.CTkButton(
             bottom,
-            text="Lancer la prédiction  →",
+            text="Start the prediction  →",
             height=44,
             width=220,
             corner_radius=8,
@@ -469,91 +530,310 @@ class RPFApp(ctk.CTk):
         # ZONE DE RÉSULTAT
         # -----------------------------
 
-        self.resultat = ctk.CTkLabel(
-            self.content,
+        self._resultat = ctk.CTkLabel(
+            self._content,
             text="",
             font=("Arial", 14),
             text_color=self.primary_color,
             justify="left"
         )
 
-        self.resultat.pack(anchor="w", pady=20)
+        self._resultat.pack(anchor="w", pady=20)
 
     def lancer_prediction(self):
-
+        """Chaque donnée est récolté et  nous évaluons les réponses avec des try except pour s'assurer que les données 
+        sont toutes remplies et valides. Dans le cas contraire, on affiche un message en rouge, puis on retourne rien
+        pour terminer la méthode avant que le "loading_screen" soit lancé. Si les valeurs sont correctes, on enregistre
+        les données dans un dictionnaire et on lance le "loading_screen"."""
         # Récupération des données
-        localisation = self.localisation.get()
-        note = self.note.get()
-        experience = self.experience.get()
-        cuisine = self.cuisine.get()
-        abonnes = self.abonnes.get()
+        location = self._location.get()
+        seating_capacity = self._seating_capacity.get()
+        experience = self._experience.get()
+        cuisine = self._cuisine.get()
+        revenue = self._revenue.get()
+        nom_analyse = self._nom_analyse.get().strip()
 
         # Vérification des champs
-        if not note or not experience or not abonnes:
-            self.resultat.configure(
-                text="Veuillez remplir tous les champs.",
+        if not nom_analyse or not seating_capacity or not experience or not revenue:
+            self._resultat.configure(
+                text="Please fill out every features and the analysis name.",
                 text_color="red"
             )
             return
 
         try:
-            note = float(note)
+            seating_capacity = float(seating_capacity)
             experience = float(experience)
-            abonnes = int(abonnes)
+            revenue = int(revenue)
 
-            if not 0 <= note <= 5 or experience < 0 or abonnes < 0:
-                raise ValueError
+            if not 0 < seating_capacity < 1000 or not 0 < experience < 70 or not 0 < revenue:
+                raise(DonnéeErronéeError)
 
-        except ValueError:
-            self.resultat.configure(
-                text="Veuillez entrer des valeurs valides.",
+            noms_analyse = [d["Name"] for d in self._historique]
+            if nom_analyse in noms_analyse:
+                raise(NomDéjaInscritError)
+
+        except DonnéeErronéeError:
+            self._resultat.configure(
+                text="Please enter valid values.",
+                text_color="red"
+            )
+            return
+        except NomDéjaInscritError:
+            self._resultat.configure(
+                text="This name of analysis is already taken. Please choose another.",
                 text_color="red"
             )
             return
 
-        # Affichage temporaire des données
-        self.resultat.configure(
-            text=(
-                f"Analyse prête !\n"
-                f"Localisation : {localisation}\n"
-                f"Note : {note}/5\n"
-                f"Expérience : {experience} ans\n"
-                f"Cuisine : {cuisine}\n"
-                f"Abonnés : {abonnes}"
-            ),
-            text_color=self.primary_color
-        )
-
-        # Résultat
-        self.resultat = ctk.CTkLabel(
-            self.content,
-            text="",
-            font=("Arial", 16, "bold"),
-            text_color=self.primary_color
-        )
-        self.resultat.pack(anchor="w", pady=15)
+        # Enregistrement des données
+        donnees = {
+            "Name": nom_analyse,
+            "Location": location,
+            "Cuisine": cuisine,
+            "Seating Capacity": seating_capacity,
+            "Experience": experience,
+            "Revenue": revenue
+        }
 
 
+        # Ouverture de la fenêtre de chargement
+        self.afficher_loading(donnees)
 
-    def show_history(self):
-
+        
+    def afficher_loading(self, donnees : dict):
+        """Dans le cas où la méthode "afficher_loading" est appelé, nous effaçons l'ancien contenu de la page et nous ajoutons le contenu
+        d'un interface de temps d'attente. Nous avons ajouté une barre de chargement et utiliser une fonction servant à lancer
+        une méthode lorsque 2,5 secondes ont été écoulés. Ce temps d'attente n'est pas représentatif du temps réelle à récolter les données
+        ,mais sera toujours au-dessus du temps nécessaire pour les récolter. """
         self.clear_content()
 
-        ctk.CTkLabel(
-        self.content,
-        text="Historique analyse",
-        font=("Arial", 30, "bold"),
-        text_color=self.text_color
-        ).pack(anchor="w", pady=20)
+        loading_frame = ctk.CTkFrame(
+            self._content,
+            fg_color="transparent"
+        )
+
+        loading_frame.pack(
+            expand=True,
+            fill="both"
+        )
 
         ctk.CTkLabel(
-        self.content,
-        text="Les anciennes analyses seront affichées ici.",
-        font=("Arial", 16)
-        ).pack(anchor="w", pady=10)
+            loading_frame,
+            text="RPF",
+            font=("Arial", 35, "bold"),
+            text_color=self.primary_color
+        ).place(relx=0.5, rely=0.38, anchor="center")
+
+        ctk.CTkLabel(
+            loading_frame,
+            text="Analysis in progress...",
+            font=("Arial", 22, "bold"),
+            text_color=self.text_color
+        ).place(relx=0.5, rely=0.48, anchor="center")
+
+        ctk.CTkLabel(
+            loading_frame,
+            text="Analysis of features of the restaurant.",
+            font=("Arial", 13),
+            text_color="#8994A3"
+        ).place(relx=0.5, rely=0.55, anchor="center")
+
+        progress = ctk.CTkProgressBar(
+            loading_frame,
+            width=280,
+            height=8,
+            mode="indeterminate",
+            progress_color=self.primary_color
+        )
+
+        progress.place(relx=0.5, rely=0.63, anchor="center")
+
+        progress.start()
+        self._loading_progress = progress
+
+        donnees["Average Meal Price"] = 0
+
+        # Démonstration : 2,5 secondes
+        self.after(
+            2500,
+            lambda: self.afficher_resultats(donnees)
+        )
+
+    def afficher_resultats(self, donnees : dict):
+        """Une fois le temps de chargement terminé, cette méthode est appelé. Elle efface l'ancien contenu et ajoute les données récoltés
+        après le téléchargement incluant le prix estimé selon les caractéristiques. Nous ajoutons le contenu à l'historique et nous
+        avons un bouton proposant de revenir à une nouvelle analyse. (Commande pour lancer la méthode "new_analysis")"""
+        self.clear_content()
+
+        # Sauvegarde automatique de l'analyse si on ne vient pas de l'historique
+        if not donnees in self._historique:
+            self.ajouter_historique(donnees)
+
+        # En-tête
+        ctk.CTkLabel(
+            self._content,
+            text=f"Results of the analysis of {donnees["Name"]}",
+            font=("Arial", 30, "bold"),
+            text_color=self.text_color
+        ).pack(anchor="w", pady=(10, 5))
+
+        ctk.CTkLabel(
+            self._content,
+            text="Here are the informations on the analysis",
+            font=("Arial", 13),
+            text_color="#8994A3"
+        ).pack(anchor="w", pady=(0, 25))
+
+        # Carte du prix
+        price_frame = ctk.CTkFrame(
+            self._content,
+            fg_color="white",
+            corner_radius=15,
+            border_width=1,
+            border_color="#E8ECF1"
+        )
+
+        price_frame.pack(fill="x", pady=5)
+
+        ctk.CTkLabel(
+            price_frame,
+            text="AVERAGE MEAL PRICE : ",
+            font=("Arial", 12, "bold"),
+            text_color="#8994A3"
+        ).pack(pady=(25, 5))
+
+        ctk.CTkLabel(
+            price_frame,
+            text=donnees["Average Meal Price"],
+            font=("Arial", 30, "bold"),
+            text_color=self.primary_color
+        ).pack(pady=(5, 25))
+
+        # Carte des caractéristiques
+        info_frame = ctk.CTkFrame(
+            self._content,
+            fg_color="white",
+            corner_radius=15,
+            border_width=1,
+            border_color="#E8ECF1"
+        )
+
+        info_frame.pack(fill="x", pady=15)
+
+        ctk.CTkLabel(
+            info_frame,
+            text="Features analyzed",
+            font=("Arial", 18, "bold"),
+            text_color=self.text_color
+        ).pack(anchor="w", padx=25, pady=(20, 10))
+
+        for nom, valeur in donnees.items():
+            if nom == "Name" or nom == "Average Meal Price":
+                continue
+            ctk.CTkLabel(
+                info_frame,
+                text=f"{nom} : {valeur}",
+                font=("Arial", 14),
+                text_color=self.text_color
+            ).pack(anchor="w", padx=25, pady=5)
+
+        ctk.CTkButton(
+            self._content,
+            text="← New analysis",
+            width=200,
+            height=42,
+            corner_radius=8,
+            fg_color=self.primary_color,
+            hover_color="#24466D",
+            command=self.show_new_analysis
+        ).pack(anchor="w", pady=15)
 
 
-if __name__ == "__main__":
 
-    app = RPFApp()
-    app.mainloop()
+    def charger_historique(self):
+        """Cette méthode sert à charger l'historique et donc d'avoir accès aux données du fichier json. S'il n'y a pas de fichier, les
+        données corresponderont à une liste vide."""
+        try:
+            with open("donnees/historique.json", "r", encoding="utf-8") as f:
+                return json.load(f)
+
+        except FileNotFoundError:
+            return []
+
+    def sauvegarder_historique(self):
+        """Cette méthode sert à sauvegarder les données dans l'historique du fichier json. L'historique ayant potentiellement eu des données
+        d'ajouté, il crée ou recrée un nouveau fichier json avec toutes les informations de l'historique. """
+        with open("donnees/historique.json", "w", encoding="utf-8") as f:
+            json.dump(self._historique, f, indent=4, ensure_ascii=False)
+
+    def ajouter_historique(self, donnees : dict):
+        """Cette méthode ajoute à l'historique (liste de dictionnaire) de nouvelles données, puis les sauvegardent."""
+        self._historique.append(donnees)
+
+        self.sauvegarder_historique()
+
+    def show_history(self):
+        """Cette méthode se lance lorsque l'utilisater clique sur le bouton pour lancer l'historique des analyses. Elle efface le 
+        contenu de la page et ajoute le sien. S'il n'y a pas de données dans l'historique, alors un message est affiché disant que
+        nous n'avons pas d'analyses affichés. Sinon, on prend la liste de l'historique (de la plus récente au plus ancien donc
+        inversé), puis on crée un bouton pour chaque historique d'une analyse. Si l'on clique sur un historique, on reprend la
+        méthode servant à afficher les résultats nous permettant ainsi de revoir les résultats. """
+        self.clear_content()
+
+        # Titre
+        ctk.CTkLabel(
+            self._content,
+            text="Analysis History",
+            font=("Arial", 30, "bold"),
+            text_color=self.text_color
+        ).pack(anchor="w", pady=(10, 5))
+
+        ctk.CTkLabel(
+            self._content,
+            text="Here you can find all your previous analyses.",
+            font=("Arial", 13),
+            text_color="#8994A3"
+        ).pack(anchor="w", pady=(0, 25))
+
+        # Conteneur des analyses
+        history_frame = ctk.CTkScrollableFrame(
+            self._content,
+            fg_color="white",
+            corner_radius=15
+        )
+
+        history_frame.pack(fill="both", expand=True)
+
+        if not self._historique:
+
+            ctk.CTkLabel(
+                history_frame,
+                text="No analysis saved yet.",
+                font=("Arial", 15),
+                text_color="#8994A3"
+            ).pack(pady=40)
+
+            return
+
+        # Création d'un bouton pour chaque analyse
+        for analyse in reversed(self._historique):
+
+            bouton = ctk.CTkButton(
+                history_frame,
+                text=f"📊  {analyse['Name']}     →",
+                height=55,
+                corner_radius=10,
+                fg_color="#F4F6F9",
+                hover_color="#E5ECF4",
+                text_color=self.text_color,
+                font=("Arial", 14, "bold"),
+                anchor="w",
+                command=lambda a=analyse: self.afficher_resultats(a)
+            )
+
+            bouton.pack(
+                fill="x",
+                padx=15,
+                pady=8
+            )
