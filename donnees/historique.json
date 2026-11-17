@@ -9,6 +9,7 @@
         "Average Meal Price": 24.15
     },
     {
+<<<<<<< Updated upstream
         "Name": "Harlise",
         "Location": "Downtown",
         "Cuisine": "American",
@@ -37,11 +38,15 @@
     },
     {
         "Name": "1",
+=======
+        "Name": "s",
+>>>>>>> Stashed changes
         "Location": "Rural",
         "Cuisine": "Japanese",
         "Seating Capacity": 1,
         "Experience": 1.0,
         "Revenue": 1.0,
+<<<<<<< Updated upstream
         "Average Meal Price": 67.22
     },
     {
@@ -70,5 +75,8 @@
         "Experience": 6.0,
         "Revenue": 40000.0,
         "Average Meal Price": 55.68
+=======
+        "Average Meal Price": 66.84
+>>>>>>> Stashed changes
     }
 ]
