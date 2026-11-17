@@ -5,7 +5,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import OneHotEncoder
 
@@ -13,14 +13,16 @@ from sklearn.preprocessing import OneHotEncoder
 
 
 class MODEL:
-    def __init__(self,name_model: str = None,target_variable: str = "Average Meal Price", test_ratio: float = 0.2, random_state: int = 0):
-        self.name_model = name_model
+    def __init__(self,target_variable: str = "Average Meal Price", test_ratio: float = 0.2, random_state: int = 0):
         self.target_variable = target_variable
         self.test_ratio = test_ratio
         self.random_state = random_state
         self.encoder = OneHotEncoder(sparse_output=False)
 
-        self.model = LinearRegression()
+        
+        # Si le prix d'un repas n'augmente pas de façon strictement proportionnelle par rapport aux variables numériques, 
+        # la régression linéaire se trompe. Le Random Forest s'adapte à ces variations
+        self.model = RandomForestRegressor()
         self.columns_names_raw = []
         self.columns_names = []
         self.metrique = 0 
@@ -39,6 +41,7 @@ class MODEL:
         # Sélectionne les colonnes avec des données qualitatives  
         categorical_columns = df.select_dtypes(include=['object','string']).columns
         if is_training:
+            # Lors de l'entrainement du modèle, ajuster l'encoder selon les colonnes 
             encoded_data = self.encoder.fit_transform(df[categorical_columns])
             encoded_df = pd.DataFrame(encoded_data, columns=self.encoder.get_feature_names_out(categorical_columns))
             new_df = pd.concat([df.drop(columns=categorical_columns), encoded_df],axis=1)
@@ -53,7 +56,7 @@ class MODEL:
     
     def train_and_eval(self,df: pd.DataFrame):
         """ 
-            Entraîne un modèle de régression linéaire sur les données fournies    
+            Entraîne un modèle de régression par forêt aléatoire sur les données utilisées    
             Paramètres
             X_train: 
             Matrice des varaiables explicatives pour l'entraînement,
@@ -86,7 +89,7 @@ class MODEL:
 
         self.columns_names_raw = list(df.columns)
         self.metrique = mse 
-        return self.metrique, y_val, y_pred
+        return self.metrique, y_val, y_pred,X,y
 
     def predict(self,user_input_raw: pd.DataFrame) -> np.ndarray:
         """ Cette fonction prédit une variable selon les données entrées par l'utilisateur"""
@@ -102,7 +105,9 @@ class MODEL:
             données du model dans un fichier JSON.
         """
         #sauvegarder le modèle 
-        joblib.dump(self.model,open(model_path,'wb'))
+        with open(model_path, 'wb') as f:
+            joblib.dump(self.model, f)
+        
 
         model_metadata = {
                 'nom_colonnes': self.columns_names_raw,
@@ -123,12 +128,15 @@ class DRAW_MODEL(MODEL):
             Cette fonction créer une digramme qui montre les valeurs 
             réelles en fonction des valeurs prédites et la droite de régression linéaire.
         """
-
-        plt.figure(figsize=(7,5))                   #Initialise la taille de l'écran 
+        #Initialise la taille de l'écran 
+        plt.figure(figsize=(7,5))                   
         plt.scatter(y_val,y_pred,s=15,alpha=0.4)
-        x_line = np.linspace(y_val.min(),y_val.max(),12).reshape(1,-1)
-        y_line = self.model.predict(x_line)
-        plt.plot(x_line,y_line, color= "red",label="Droite de régression")
+
+
+        min_val = min(y_val.min(), y_pred.min())
+        max_val = max(y_val.max(), y_pred.max())
+        plt.plot([min_val, max_val], [min_val, max_val], color="red")
+
         plt.xlabel("Valeurs réelles")
         plt.ylabel("Valeurs prédites")
         plt.title("Comparaison : Valeurs réelles vs Valeurs prédites")
@@ -159,7 +167,7 @@ if __name__ == "__main__":
 
     # 2. Instanciation et entraînement via la classe
     modele = MODEL(target_variable="Average Meal Price", test_ratio=0.2, random_state=0)
-    mse, X_val, y_val = modele.train_and_eval(df)
+    mse, y_val, y_pred,X,y = modele.train_and_eval(df)
     print(f"Modèle entraîné avec succès. MSE : {mse:.2f}")
 
     # 3. Sauvegarde
@@ -169,4 +177,8 @@ if __name__ == "__main__":
     user_input = ["Rural","Mexican",100,17,500000]
     prix_repas = modele.predict(user_input)
     print(prix_repas)
+
+    dessin = DRAW_MODEL()
+    dessin.plot_prediction(y_val,y_pred)
+    dessin.plot_correlation_heatmap(df)
     

@@ -667,7 +667,7 @@ class RPFApp(ctk.CTk):
         self.clear_content()
 
         # Sauvegarde automatique de l'analyse si on ne vient pas de l'historique
-        if not donnees in self._historique:
+        if donnees not in self._historique:
             self.ajouter_historique(donnees)
 
         # En-tête
