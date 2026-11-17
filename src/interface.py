@@ -1,10 +1,12 @@
+import json
+
 import customtkinter as ctk
-from exceptions import DonnéeErronéeError, NomDéjaInscritError
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from modele import MODEL
-import pandas as pd
-import json 
 import joblib
+import pandas as pd
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+from exceptions import DonnéeErronéeError, NomDéjaInscritError
+from modele import MODEL
 
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")

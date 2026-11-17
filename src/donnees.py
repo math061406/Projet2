@@ -1,5 +1,5 @@
-import os
 import csv
+import os
 
 
 def nettoyage(fichier_csv):
@@ -14,4 +14,3 @@ def nettoyage(fichier_csv):
             writer.writerow(en_tete[1:3] + en_tete[4:6] + [en_tete[8]]+[en_tete[-1]] )
             for liste in reader:
                 writer.writerow(liste[1:3] + liste[4:6] + [liste[8]] + [liste[-1]])
-            
