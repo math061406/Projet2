@@ -1,6 +1,12 @@
 import customtkinter as ctk
 from exceptions import DonnéeErronéeError, NomDéjaInscritError
+from modele import MODEL
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from modele import DRAW_MODEL
+import pandas as pd
 import json 
+import joblib
 
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
@@ -40,6 +46,11 @@ class RPFApp(ctk.CTk):
         self._historique = self.charger_historique()
         self.create_sidebar()
         self.show_home()
+
+        #Création modèle
+        self._modele = MODEL()
+        self._modele.model = joblib.load("donnees/model_linear.sav")
+        self._colonnes_modele = self._modele.model.feature_names_in_
 
         #Aller chercher les informations du fichier json
         with open("donnees/model.json", "r", encoding="utf-8") as f:
@@ -143,10 +154,11 @@ class RPFApp(ctk.CTk):
 # -----------------------------
 
     def clear_content(self):
-        """Cette méthode sert à effacer le contenu retrouvé dans la page actuel lorsque l'on clique sur un bouton différent du menu latéral
-        ou du bouton pour lancer une prédiction ou à la fin du temps d'attente. Ainsi, le contenu se fait effacer et prépare une nouvelle
-        "Frame" qui se fera modifié selon la méthode ayant appelé "clear_content" ."""
-        if hasattr(self, "content"):
+        """Cette méthode sert à effacer le contenu retrouvé dans la page actuel lorsque l'on clique sur un bouton 
+        différent du menu latéral ou du bouton pour lancer une prédiction ou à la fin du temps d'attente. 
+        Ainsi, le contenu se fait effacer et prépare une nouvelle "Frame" qui se fera modifié selon la méthode 
+        ayant appelé "clear_content" ."""
+        if hasattr(self, "_content"):
             self._content.destroy()
 
         
@@ -169,8 +181,9 @@ class RPFApp(ctk.CTk):
         # -----------------------------
 
     def show_home(self):
-        """Cette méthode se produit lorsque le bouton "Home" du menu d'accueil est activé par l'utilisateur. À ce moment, le contenu
-        se fait effacé avec la méthode "clear_content" et crée un nouveau contenu contenant différentes informations sur notre application.
+        """Cette méthode se produit lorsque le bouton "Home" du menu d'accueil est activé par l'utilisateur. 
+        À ce moment, le contenu se fait effacé avec la méthode "clear_content" et crée un nouveau contenu 
+        contenant différentes informations sur notre application.
         """
         self.clear_content()
 
@@ -260,14 +273,15 @@ class RPFApp(ctk.CTk):
         ).pack()
     
     def show_new_analysis(self):
-        """Cette méthode est appelé lorsque l'utilisateur clique sur le bouton "Nouvelle analyse". On efface donc l'ancien contenu, mais 
-        on n'utilise pas la méthode "clear_content", puisque cette méthode crée un "frame" rédulier, ce qui, fonctionne pour chaque page
-        excepté celle-ci où l'on veut un "ScrollableFrame" pour pouvoir dérouler vers les options si la fenêtre est réduite. Cette méthode
-        crée 6 questions en "Entry" ou "OptionMenu" pour les données qualitatives. On enregistre chacune des données dans la classe comme
+        """Cette méthode est appelé lorsque l'utilisateur clique sur le bouton "Nouvelle analyse". On efface 
+        donc l'ancien contenu, mais on n'utilise pas la méthode "clear_content", puisque cette méthode crée 
+        un "frame" rédulier, ce qui, fonctionne pour chaque page excepté celle-ci où l'on veut un "ScrollableFrame"
+        pour pouvoir dérouler vers les options si la fenêtre est réduite. Cette méthode crée 6 questions en "Entry"
+        ou "OptionMenu" pour les données qualitatives. On enregistre chacune des données dans la classe comme
         attributs pour être réutiliser lors de l'appui du lancement de la prédiction. """
         # Conteneur défilable uniquement pour cette page
         
-        if hasattr(self, "content"):
+        if hasattr(self, "_content"):
             self._content.destroy()
 
         self._content = ctk.CTkScrollableFrame(
@@ -562,9 +576,9 @@ class RPFApp(ctk.CTk):
             return
 
         try:
-            seating_capacity = float(seating_capacity)
+            seating_capacity = int(seating_capacity)
             experience = float(experience)
-            revenue = int(revenue)
+            revenue = float(revenue)
 
             if not 0 < seating_capacity < 1000 or not 0 < experience < 70 or not 0 < revenue:
                 raise(DonnéeErronéeError)
@@ -602,10 +616,11 @@ class RPFApp(ctk.CTk):
 
         
     def afficher_loading(self, donnees : dict):
-        """Dans le cas où la méthode "afficher_loading" est appelé, nous effaçons l'ancien contenu de la page et nous ajoutons le contenu
-        d'un interface de temps d'attente. Nous avons ajouté une barre de chargement et utiliser une fonction servant à lancer
-        une méthode lorsque 2,5 secondes ont été écoulés. Ce temps d'attente n'est pas représentatif du temps réelle à récolter les données
-        ,mais sera toujours au-dessus du temps nécessaire pour les récolter. """
+        """Dans le cas où la méthode "afficher_loading" est appelé, nous effaçons l'ancien contenu de la page et 
+        nous ajoutons le contenu d'un interface de temps d'attente. Nous avons ajouté une barre de chargement et 
+        utiliser une fonction servant à lancer une méthode lorsque 2,5 secondes ont été écoulés. Ce temps d'attente
+        n'est pas représentatif du temps réelle à récolter les données ,mais sera toujours au-dessus du temps nécessaire
+        pour les récolter. """
         self.clear_content()
 
         loading_frame = ctk.CTkFrame(
@@ -652,7 +667,34 @@ class RPFApp(ctk.CTk):
         progress.start()
         self._loading_progress = progress
 
-        donnees["Average Meal Price"] = 0
+        liste = []
+        for nom, valeur in donnees.items():
+            if nom != "Name":
+                liste.append(valeur)
+
+        # Création du DataFrame avec les caractéristiques
+        liste_valeurs = pd.DataFrame([{
+            "Location": donnees["Location"],
+            "Cuisine": donnees["Cuisine"],
+            "Seating Capacity": donnees["Seating Capacity"],
+            "Chef Experience Years": donnees["Experience"],
+            "Revenue": donnees["Revenue"]
+        }])
+
+        # Transformation des données
+        liste_valeurs = self._modele.transform(
+            liste_valeurs,
+            is_training=True
+        )
+
+        liste_valeurs = liste_valeurs.reindex(
+            columns=self._colonnes_modele,
+            fill_value=0
+        )
+
+        prediction = self._modele.model.predict(liste_valeurs)
+
+        donnees["Average Meal Price"] = round(float(prediction[0]), 2)
 
         # Démonstration : 2,5 secondes
         self.after(
@@ -661,9 +703,10 @@ class RPFApp(ctk.CTk):
         )
 
     def afficher_resultats(self, donnees : dict):
-        """Une fois le temps de chargement terminé, cette méthode est appelé. Elle efface l'ancien contenu et ajoute les données récoltés
-        après le téléchargement incluant le prix estimé selon les caractéristiques. Nous ajoutons le contenu à l'historique et nous
-        avons un bouton proposant de revenir à une nouvelle analyse. (Commande pour lancer la méthode "new_analysis")"""
+        """Une fois le temps de chargement terminé, cette méthode est appelé. Elle efface l'ancien contenu 
+        et ajoute les données récoltés après le téléchargement incluant le prix estimé selon les caractéristiques.
+        Nous ajoutons le contenu à l'historique et nous avons un bouton proposant de revenir à une nouvelle analyse. 
+        (Commande pour lancer la méthode "new_analysis")"""
         self.clear_content()
 
         # Sauvegarde automatique de l'analyse si on ne vient pas de l'historique
@@ -752,8 +795,8 @@ class RPFApp(ctk.CTk):
 
 
     def charger_historique(self):
-        """Cette méthode sert à charger l'historique et donc d'avoir accès aux données du fichier json. S'il n'y a pas de fichier, les
-        données corresponderont à une liste vide."""
+        """Cette méthode sert à charger l'historique et donc d'avoir accès aux données du fichier json. 
+        S'il n'y a pas de fichier, les données corresponderont à une liste vide."""
         try:
             with open("donnees/historique.json", "r", encoding="utf-8") as f:
                 return json.load(f)

@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "Test",
+        "Location": "Downtown",
+        "Cuisine": "French",
+        "Seating Capacity": 40,
+        "Experience": 8.0,
+        "Revenue": 100000.0,
+        "Average Meal Price": 24.15
+    }
+]
