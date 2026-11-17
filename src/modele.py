@@ -12,7 +12,6 @@ from sklearn.preprocessing import OneHotEncoder
 
 
 
-
 class MODEL:
     def __init__(self,name_model: str = None,target_variable: str = "Average Meal Price", test_ratio: float = 0.2, random_state: int = 0):
         self.name_model = name_model
