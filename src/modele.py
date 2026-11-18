@@ -176,13 +176,14 @@ if __name__ == "__main__":
     print(f"Modèle entraîné avec succès. MSE : {mse:.2f}")
 
     # 3. Sauvegarde
-    modele.save(df, 'donnees/model_RandomForestRegression.sav', 'donnees/model.json')
+    modele.save(df, "donnees/model_RandomForestRegression.sav", "donnees/model.json")
 
     # 4. Test de prédiction.
-    user_input = ["Rural","Mexican",100,17,500000]
-    prix_repas = modele.predict(user_input)
-    print(prix_repas)
+    # user_input = ["Rural","Mexican",100,17,500000]
+    # prix_repas = modele.predict(user_input)
+    # print(prix_repas)
 
+    # 5. Sauvegarder les diagrammes 
     dessin = DRAW_MODEL()
     dessin.plot_prediction(y_val,y_pred)
     dessin.plot_correlation_heatmap(df)
