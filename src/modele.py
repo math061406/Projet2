@@ -27,7 +27,7 @@ class MODEL:
         self.columns_names = []
         self.metrique = 0 
 
-    def transform(self,df:pd.DataFrame, is_training:boolTrue)->pd.DataFrame:
+    def transform(self,df:pd.DataFrame, is_training:bool=True)->pd.DataFrame:
         """
             Transformer les données qualitaves en format numériques pour pouvoir entrainer le modèle.
             

@@ -6,7 +6,7 @@ import pandas as pd
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from exceptions import DonnéeErronéeError, NomDéjaInscritError
-from modele import MODEL
+from PIL import Image
 
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
@@ -44,8 +44,7 @@ class RPFApp(ctk.CTk):
         self.create_sidebar()
         self.show_home()
 
-        # Création modèle
-        self._modele = MODEL()
+        # Accès au modèle
         self._load_modele = joblib.load("donnees/model_linear.sav")
         self._colonnes_modele = self._load_modele.feature_names_in_
 
@@ -140,7 +139,7 @@ class RPFApp(ctk.CTk):
     # ZONE PRINCIPALE
     # -----------------------------
 
-    def clear_content(self):
+    def clear_content_frame(self):
         """Cette méthode sert à effacer le contenu retrouvé dans la page actuel lorsque l'on clique sur un bouton
         différent du menu latéral ou du bouton pour lancer une prédiction ou à la fin du temps d'attente.
         Ainsi, le contenu se fait effacer et prépare une nouvelle "Frame" qui se fera modifié selon la méthode
@@ -152,16 +151,28 @@ class RPFApp(ctk.CTk):
 
         self._content.grid(row=0, column=1, sticky="nsew", padx=30, pady=30)
 
-        # -----------------------------
-        # PAGE ACCUEIL
-        # -----------------------------
+    def clear_content_scrollable_frame(self):
+        """Cette méthode est la même que "clear_content", mais elle est appelé pour les fenêtres ayant
+        besoin d'un ScrollableFrame sur la page."""
+        if hasattr(self, "_content"):
+            self._content.destroy()
+
+        self._content = ctk.CTkScrollableFrame(self, fg_color=self.bg_color, corner_radius=0)
+
+        self._content.grid(row=0, column=1, sticky="nsew", padx=30, pady=30)
+
+
+    # -----------------------------
+    # PAGE ACCUEIL
+    # -----------------------------
+
 
     def show_home(self):
         """Cette méthode se produit lorsque le bouton "Home" du menu d'accueil est activé par l'utilisateur.
         À ce moment, le contenu se fait effacé avec la méthode "clear_content" et crée un nouveau contenu
         contenant différentes informations sur notre application.
         """
-        self.clear_content()
+        self.clear_content_frame()
 
         # Titre
         title = ctk.CTkLabel(
@@ -237,21 +248,12 @@ class RPFApp(ctk.CTk):
 
     def show_new_analysis(self):
         """Cette méthode est appelé lorsque l'utilisateur clique sur le bouton "Nouvelle analyse". On efface
-        donc l'ancien contenu, mais on n'utilise pas la méthode "clear_content", puisque cette méthode crée
-        un "frame" rédulier, ce qui, fonctionne pour chaque page excepté celle-ci où l'on veut un "ScrollableFrame"
-        pour pouvoir dérouler vers les options si la fenêtre est réduite. Cette méthode crée 6 questions en "Entry"
-        ou "OptionMenu" pour les données qualitatives. On enregistre chacune des données dans la classe comme
-        attributs pour être réutiliser lors de l'appui du lancement de la prédiction."""
-        # Conteneur défilable uniquement pour cette page
+        donc l'ancien contenu avec la méthode clear_content_scrollable_frame pour avoir un défilement vertical.
+        Cette méthode crée 6 questions en "Entry" ou "OptionMenu" pour les données qualitatives. 
+        On enregistre chacune des données dans la classe comme attributs pour être réutiliser lors de l'appui 
+        du lancement de la prédiction."""
 
-        if hasattr(self, "_content"):
-            self._content.destroy()
-
-        self._content = ctk.CTkScrollableFrame(
-            self, fg_color=self.bg_color, corner_radius=0
-        )
-
-        self._content.grid(row=0, column=1, sticky="nsew", padx=30, pady=30)
+        self.clear_content_scrollable_frame()
 
         # -----------------------------
         # EN-TÊTE
@@ -535,7 +537,7 @@ class RPFApp(ctk.CTk):
         utiliser une fonction servant à lancer une méthode lorsque 2,5 secondes ont été écoulés. Ce temps d'attente
         n'est pas représentatif du temps réelle à récolter les données ,mais sera toujours au-dessus du temps nécessaire
         pour les récolter."""
-        self.clear_content()
+        self.clear_content_frame()
 
         loading_frame = ctk.CTkFrame(self._content, fg_color="transparent")
 
@@ -593,15 +595,20 @@ class RPFApp(ctk.CTk):
             ]
         )
 
-        # Transformation des données
-        liste_valeurs = self._modele.transform(liste_valeurs, is_training=False)
-        print(liste_valeurs)
-
-        liste_valeurs = liste_valeurs.reindex(
-            columns=self._colonnes_modele, fill_value=0
+        # Transformer les catégories en colonnes numériques
+        liste_valeurs = pd.get_dummies(
+            liste_valeurs,
+            columns=["Location", "Cuisine"],
+            dtype=int
         )
-        print(liste_valeurs)
 
+        # Aligner les colonnes avec celles du modèle
+        liste_valeurs = liste_valeurs.reindex(
+            columns=self._colonnes_modele,
+            fill_value=0
+        )
+
+        # Effectuer la prédiction
         prediction = self._load_modele.predict(liste_valeurs)
 
         donnees["Average Meal Price"] = round(float(prediction[0]), 2)
@@ -609,19 +616,73 @@ class RPFApp(ctk.CTk):
         # Démonstration : 2,5 secondes
         self.after(2500, lambda: self.afficher_resultats(donnees))
 
-    def afficher_figure(self, figure, parent):
-        canvas = FigureCanvasTkAgg(figure, master=parent)
+    def afficher_figure(self):
+        """Accéder aux graphiques dans données et les affichent dans l'interface"""
+        # -----------------------------
+        # GRAPHIQUES
+        # -----------------------------
 
-        canvas.draw()
+        graphs_frame = ctk.CTkFrame(
+            self._content,
+            fg_color="white",
+            corner_radius=15
+        )
 
-        canvas.get_tk_widget().pack(fill="both", expand=True, padx=10, pady=10)
+        graphs_frame.pack(fill="x", pady=15)
+
+        ctk.CTkLabel(
+            graphs_frame,
+            text="Analysis graphs",
+            font=("Arial", 18, "bold"),
+            text_color=self.text_color
+        ).pack(anchor="w", padx=25, pady=(20, 10))
+
+        # Conteneur des deux graphiques
+        images_frame = ctk.CTkFrame(
+            graphs_frame,
+            fg_color="transparent"
+        )
+
+        images_frame.pack(fill="x", padx=15, pady=10)
+
+        images_frame.grid_columnconfigure((0, 1), weight=1)
+
+        # Chargement des images
+        image1 = Image.open("donnees/model_prediction.jpg")
+        image2 = Image.open("donnees/model_heatmap.jpg")
+
+        # Conversion en CTkImage
+        self._graphique1 = ctk.CTkImage(
+            light_image=image1,
+            dark_image=image1,
+            size=(700, 490)
+        )
+
+        self._graphique2 = ctk.CTkImage(
+            light_image=image2,
+            dark_image=image2,
+            size=(700, 490)
+        )
+
+        # Affichage
+        ctk.CTkLabel(
+            images_frame,
+            text="",
+            image=self._graphique1
+        ).grid(row=0, column=0, padx=10, pady=10)
+
+        ctk.CTkLabel(
+            images_frame,
+            text="",
+            image=self._graphique2
+        ).grid(row=1, column=0, padx=10, pady=10)
 
     def afficher_resultats(self, donnees: dict):
         """Une fois le temps de chargement terminé, cette méthode est appelé. Elle efface l'ancien contenu
         et ajoute les données récoltés après le téléchargement incluant le prix estimé selon les caractéristiques.
         Nous ajoutons le contenu à l'historique et nous avons un bouton proposant de revenir à une nouvelle analyse.
         (Commande pour lancer la méthode "new_analysis")"""
-        self.clear_content()
+        self.clear_content_scrollable_frame()
 
         # Sauvegarde automatique de l'analyse si on ne vient pas de l'historique
         if donnees not in self._historique:
@@ -695,6 +756,8 @@ class RPFApp(ctk.CTk):
                 text_color=self.text_color,
             ).pack(anchor="w", padx=25, pady=5)
 
+        self.afficher_figure()
+
         ctk.CTkButton(
             self._content,
             text="← New analysis",
@@ -734,7 +797,7 @@ class RPFApp(ctk.CTk):
         nous n'avons pas d'analyses affichés. Sinon, on prend la liste de l'historique (de la plus récente au plus ancien donc
         inversé), puis on crée un bouton pour chaque historique d'une analyse. Si l'on clique sur un historique, on reprend la
         méthode servant à afficher les résultats nous permettant ainsi de revoir les résultats."""
-        self.clear_content()
+        self.clear_content_frame()
 
         # Titre
         ctk.CTkLabel(

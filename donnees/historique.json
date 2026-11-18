@@ -1,52 +1,29 @@
 [
     {
-        "Name": "Test",
-        "Location": "Downtown",
-        "Cuisine": "French",
-        "Seating Capacity": 40,
-        "Experience": 8.0,
-        "Revenue": 100000.0,
-        "Average Meal Price": 24.15
-    },
-    {
-<<<<<<< Updated upstream
-        "Name": "Harlise",
-        "Location": "Downtown",
-        "Cuisine": "American",
-        "Seating Capacity": 100,
-        "Experience": 19.0,
-        "Revenue": 1000.0,
-        "Average Meal Price": 35.32
-    },
-    {
-        "Name": "Harlise 2.0",
-        "Location": "Downtown",
-        "Cuisine": "American",
-        "Seating Capacity": 100,
-        "Experience": 19.0,
-        "Revenue": 100000.0,
-        "Average Meal Price": 35.32
-    },
-    {
-        "Name": "Harlise 3.0",
-        "Location": "Downtown",
-        "Cuisine": "Italian",
-        "Seating Capacity": 100,
-        "Experience": 19.0,
-        "Revenue": 1000.0,
-        "Average Meal Price": 45.5
-    },
-    {
-        "Name": "1",
-=======
-        "Name": "s",
->>>>>>> Stashed changes
+        "Name": "D",
         "Location": "Rural",
         "Cuisine": "Japanese",
         "Seating Capacity": 1,
         "Experience": 1.0,
         "Revenue": 1.0,
-<<<<<<< Updated upstream
+        "Average Meal Price": 67.22
+    },
+    {
+        "Name": "S",
+        "Location": "Rural",
+        "Cuisine": "American",
+        "Seating Capacity": 1,
+        "Experience": 1.0,
+        "Revenue": 1.0,
+        "Average Meal Price": 36.74
+    },
+    {
+        "Name": "1",
+        "Location": "Rural",
+        "Cuisine": "Japanese",
+        "Seating Capacity": 1,
+        "Experience": 1.0,
+        "Revenue": 1.0,
         "Average Meal Price": 67.22
     },
     {
@@ -56,10 +33,10 @@
         "Seating Capacity": 1,
         "Experience": 1.0,
         "Revenue": 1.0,
-        "Average Meal Price": 32.57
+        "Average Meal Price": 67.22
     },
     {
-        "Name": "122",
+        "Name": "Tear",
         "Location": "Rural",
         "Cuisine": "Japanese",
         "Seating Capacity": 1,
@@ -68,15 +45,66 @@
         "Average Meal Price": 67.22
     },
     {
-        "Name": "truc",
+        "Name": "Harlise",
         "Location": "Rural",
-        "Cuisine": "French",
-        "Seating Capacity": 34,
-        "Experience": 6.0,
-        "Revenue": 40000.0,
-        "Average Meal Price": 55.68
-=======
-        "Average Meal Price": 66.84
->>>>>>> Stashed changes
+        "Cuisine": "Japanese",
+        "Seating Capacity": 1,
+        "Experience": 1.0,
+        "Revenue": 1.0,
+        "Average Meal Price": 67.22
+    },
+    {
+        "Name": "Yassin",
+        "Location": "Rural",
+        "Cuisine": "Japanese",
+        "Seating Capacity": 1,
+        "Experience": 1.0,
+        "Revenue": 1.0,
+        "Average Meal Price": 67.22
+    },
+    {
+        "Name": "H",
+        "Location": "Rural",
+        "Cuisine": "Japanese",
+        "Seating Capacity": 38,
+        "Experience": 13.0,
+        "Revenue": 638945.52,
+        "Average Meal Price": 74.21
+    },
+    {
+        "Name": "F",
+        "Location": "Downtown",
+        "Cuisine": "Mexican",
+        "Seating Capacity": 76,
+        "Experience": 8.0,
+        "Revenue": 490207.83,
+        "Average Meal Price": 28.06
+    },
+    {
+        "Name": "Fa",
+        "Location": "Rural",
+        "Cuisine": "Japanese",
+        "Seating Capacity": 1,
+        "Experience": 1.0,
+        "Revenue": 1.0,
+        "Average Meal Price": 67.22
+    },
+    {
+        "Name": "Da",
+        "Location": "Rural",
+        "Cuisine": "Japanese",
+        "Seating Capacity": 1,
+        "Experience": 1.0,
+        "Revenue": 1.0,
+        "Average Meal Price": 67.22
+    },
+    {
+        "Name": "De",
+        "Location": "Rural",
+        "Cuisine": "Japanese",
+        "Seating Capacity": 1,
+        "Experience": 1.0,
+        "Revenue": 1.0,
+        "Average Meal Price": 67.22
     }
 ]
