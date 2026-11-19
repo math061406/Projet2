@@ -25,5 +25,14 @@
         "Experience": 5.0,
         "Revenue": 40000000.0,
         "Average Meal Price": 45.6
+    },
+    {
+        "Name": "F",
+        "Location": "Downtown",
+        "Cuisine": "Indian",
+        "Seating Capacity": 100,
+        "Experience": 12.0,
+        "Revenue": 1222222.0,
+        "Average Meal Price": 40.29
     }
 ]

@@ -576,11 +576,6 @@ class RPFApp(ctk.CTk):
         progress.start()
         self._loading_progress = progress
 
-        liste = []
-        for nom, valeur in donnees.items():
-            if nom != "Name":
-                liste.append(valeur)
-
         # Création du DataFrame avec les caractéristiques
         liste_valeurs = pd.DataFrame(
             [
@@ -666,11 +661,13 @@ class RPFApp(ctk.CTk):
         # Affichage
         ctk.CTkLabel(
             images_frame,
+            text="",
             image=self._graphique1
         ).grid(row=0, column=0, padx=10, pady=10)
 
         ctk.CTkLabel(
             images_frame,
+            text="",
             image=self._graphique2
         ).grid(row=1, column=0, padx=10, pady=10)
 
