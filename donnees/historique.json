@@ -16,5 +16,14 @@
         "Experience": 5.0,
         "Revenue": 100000.0,
         "Average Meal Price": 31.66
+    },
+    {
+        "Name": "truc2",
+        "Location": "Downtown",
+        "Cuisine": "American",
+        "Seating Capacity": 5,
+        "Experience": 5.0,
+        "Revenue": 40000000.0,
+        "Average Meal Price": 45.6
     }
 ]
