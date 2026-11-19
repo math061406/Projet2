@@ -143,6 +143,7 @@ class DRAW_MODEL(MODEL):
         plt.ylabel("Valeurs prédites")
         plt.title("Comparaison : Valeurs réelles vs Valeurs prédites")
         plt.savefig("donnees/model_prediction.jpg")
+        plt.tight_layout()
         plt.show()
 
 
@@ -163,6 +164,7 @@ class DRAW_MODEL(MODEL):
         sns.heatmap(corr, annot=True, cmap='coolwarm', fmt=".2f", linewidths=0.5)
         plt.title("Matrice de Corrélation des Variables Numériques")
         plt.savefig("donnees/model_heatmap.jpg")
+        plt.tight_layout()
         plt.show()
 
 
