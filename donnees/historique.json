@@ -27,6 +27,7 @@
         "Average Meal Price": 45.6
     },
     {
+<<<<<<< Updated upstream
         "Name": "F",
         "Location": "Downtown",
         "Cuisine": "Indian",
@@ -34,5 +35,14 @@
         "Experience": 12.0,
         "Revenue": 1222222.0,
         "Average Meal Price": 40.29
+=======
+        "Name": "ajdkas",
+        "Location": "Rural",
+        "Cuisine": "Mexican",
+        "Seating Capacity": 15,
+        "Experience": 7.0,
+        "Revenue": 24.0,
+        "Average Meal Price": 26.09
+>>>>>>> Stashed changes
     }
 ]

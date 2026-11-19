@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.dummy import DummyRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
@@ -23,6 +24,7 @@ class MODEL:
         # Si le prix d'un repas n'augmente pas de façon strictement proportionnelle par rapport aux variables numériques, 
         # la régression linéaire se trompe. Le Random Forest s'adapte à ces variations
         self.model = RandomForestRegressor()
+        self.model_trivial = DummyRegressor(strategy="mean")
         self.columns_names_raw = []
         self.columns_names = []
         self.metrique = 0 
@@ -120,7 +122,19 @@ class MODEL:
         # Fichier json de métadonnées 
         with open(meta_path,'w',encoding='utf-8') as f:
             json.dump(model_metadata,f,indent=2)
+    def trivial_model(self,df: pd.DataFrame):
+        X_raw = df.drop(columns =[self.target_variable])
+        y = df[self.target_variable]
 
+
+        X = self.transform(X_raw,is_training=True)
+        X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=self.test_ratio, random_state=self.random_state)
+
+        self.model_trivial.fit(X_train,y_train)
+        y_pred = self.model_trivial.predict(X_val)
+        mse_trivial = mean_squared_error(y_val,y_pred)
+ 
+        return mse_trivial
 class DRAW_MODEL(MODEL):
     def __init__(self,target_variable = "Average Meal Price", test_ratio = 0.2, random_state = 0):
         super().__init__(target_variable, test_ratio, random_state)
@@ -153,9 +167,9 @@ class DRAW_MODEL(MODEL):
             les différentes variables du jeu de données 
         """
         plt.figure(figsize=(7, 5))
-        
+        new_df = self.transform(df,is_training=True)
         # On ne garde que les colonnes numériques pour calculer la corrélation
-        numeric_df = df.select_dtypes(include=[np.number])
+        numeric_df = new_df.select_dtypes(include=[np.number])
         
         # Calcul de la matrice de corrélation
         corr = numeric_df.corr()
@@ -199,4 +213,7 @@ if __name__ == "__main__":
     mse = np.mean((y_val - y_pred) ** 2)
 
     print(f"MSE avec numpy : {mse:.2f}")
-    
+
+    # 7. Calcule du MSE à l'aide du modèle trivial
+    mse_trivial = modele.trivial_model(df)
+    print(f"Modèle entraîné avec succès. MSE Trivial : {mse_trivial:.2f}")
