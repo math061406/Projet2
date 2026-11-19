@@ -44,7 +44,7 @@ class RPFApp(ctk.CTk):
         self.show_home()
 
         # Accès au modèle
-        self._load_modele = joblib.load("donnees/model_linear.sav")
+        self._load_modele = joblib.load("donnees/model_RandomForestRegression.sav")
         self._colonnes_modele = self._load_modele.feature_names_in_
 
         # Aller chercher les informations du fichier json

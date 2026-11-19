@@ -1,0 +1,20 @@
+[
+    {
+        "Name": "allo",
+        "Location": "Downtown",
+        "Cuisine": "Italian",
+        "Seating Capacity": 45,
+        "Experience": 5.0,
+        "Revenue": 4000000.0,
+        "Average Meal Price": 55.71
+    },
+    {
+        "Name": "truc",
+        "Location": "Suburban",
+        "Cuisine": "Indian",
+        "Seating Capacity": 25,
+        "Experience": 5.0,
+        "Revenue": 100000.0,
+        "Average Meal Price": 31.66
+    }
+]
