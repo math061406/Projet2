@@ -3,10 +3,9 @@ import json
 import customtkinter as ctk
 import joblib
 import pandas as pd
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from PIL import Image
 
 from exceptions import DonnéeErronéeError, NomDéjaInscritError
-from PIL import Image
 
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
