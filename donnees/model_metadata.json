@@ -1,0 +1,24 @@
+{
+  "nom_colonnes": [
+    "Location",
+    "Cuisine",
+    "Seating Capacity",
+    "Average Meal Price",
+    "Chef Experience Years",
+    "Revenue"
+  ],
+  "valeurs_location": [
+    "Rural",
+    "Downtown",
+    "Suburban"
+  ],
+  "valeurs_cuisine": [
+    "Japanese",
+    "Mexican",
+    "Italian",
+    "Indian",
+    "French",
+    "American"
+  ],
+  "erreur quadratique moyenne ": 0.3952270274253264
+}

@@ -1,4 +1,5 @@
 import json
+import os
 
 import joblib
 import matplotlib.pyplot as plt
@@ -142,6 +143,7 @@ class DRAW_MODEL(MODEL):
         plt.ylabel("Valeurs prédites")
         plt.title("Comparaison : Valeurs réelles vs Valeurs prédites")
         plt.savefig("donnees/model_prediction.jpg")
+        plt.tight_layout()
         plt.show()
 
 
@@ -150,7 +152,7 @@ class DRAW_MODEL(MODEL):
             Cette fonction montre les lien de corrélation entre 
             les différentes variables du jeu de données 
         """
-        plt.figure(figsize=(8, 6))
+        plt.figure(figsize=(7, 5))
         
         # On ne garde que les colonnes numériques pour calculer la corrélation
         numeric_df = df.select_dtypes(include=[np.number])
@@ -162,12 +164,14 @@ class DRAW_MODEL(MODEL):
         sns.heatmap(corr, annot=True, cmap='coolwarm', fmt=".2f", linewidths=0.5)
         plt.title("Matrice de Corrélation des Variables Numériques")
         plt.savefig("donnees/model_heatmap.jpg")
+        plt.tight_layout()
         plt.show()
 
 
 if __name__ == "__main__":
     # 1. Chargement des données
-    df = pd.read_csv("donnees/restaurant_data_nettoye.csv")
+    fichier_csv = os.path.join("donnees", "restaurant_data_nettoye.csv")
+    df = pd.read_csv(fichier_csv)
 
     # 2. Instanciation et entraînement via la classe
     modele = MODEL(target_variable="Average Meal Price", test_ratio=0.2, random_state=0)
@@ -175,7 +179,9 @@ if __name__ == "__main__":
     print(f"Modèle entraîné avec succès. MSE : {mse:.2f}")
 
     # 3. Sauvegarde
-    modele.save(df, "donnees/model_RandomForestRegression.sav", "donnees/model.json")
+    model_path = os.path.join("donnees", "model_RandomForestRegression.sav")
+    metadata_path = os.path.join("donnees", "model_metadata.json")
+    modele.save(df, model_path, metadata_path)
 
     # 4. Test de prédiction.
     # user_input = ["Rural","Mexican",100,17,500000]
