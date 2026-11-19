@@ -186,4 +186,11 @@ if __name__ == "__main__":
     dessin = DRAW_MODEL()
     dessin.plot_prediction(y_val,y_pred)
     dessin.plot_correlation_heatmap(df)
+
+    # 6. Calculer le MSE avec numpy calcule vectorisé
+    y_val = np.array(y_val)
+    y_pred = np.array(y_pred)
+    mse = mse = np.mean((y_val - y_pred) ** 2)
+
+    print(f"MSE avec numpy : {mse:.2f}")
     
