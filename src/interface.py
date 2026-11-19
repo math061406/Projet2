@@ -666,13 +666,11 @@ class RPFApp(ctk.CTk):
         # Affichage
         ctk.CTkLabel(
             images_frame,
-            text="",
             image=self._graphique1
         ).grid(row=0, column=0, padx=10, pady=10)
 
         ctk.CTkLabel(
             images_frame,
-            text="",
             image=self._graphique2
         ).grid(row=1, column=0, padx=10, pady=10)
 
@@ -779,8 +777,8 @@ class RPFApp(ctk.CTk):
             return []
 
     def sauvegarder_historique(self):
-        """Cette méthode sert à sauvegarder les données dans l'historique du fichier json. L'historique ayant potentiellement eu des données
-        d'ajouté, il crée ou recrée un nouveau fichier json avec toutes les informations de l'historique."""
+        """Cette méthode sert à sauvegarder les données dans l'historique du fichier json. L'historique ayant potentiellement 
+        eu des données d'ajoutés, il crée ou recrée un nouveau fichier json avec toutes les informations de l'historique."""
         with open("donnees/historique.json", "w", encoding="utf-8") as f:
             json.dump(self._historique, f, indent=4, ensure_ascii=False)
 
