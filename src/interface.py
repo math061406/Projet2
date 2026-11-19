@@ -639,7 +639,7 @@ class RPFApp(ctk.CTk):
 
         images_frame.pack(fill="x", padx=15, pady=10)
 
-        images_frame.grid_columnconfigure((0, 1), weight=1)
+        images_frame.grid_columnconfigure(0, weight=1)
 
         # Chargement des images
         image1 = Image.open("donnees/model_prediction.jpg")
