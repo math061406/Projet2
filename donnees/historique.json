@@ -1,48 +1,20 @@
 [
     {
-        "Name": "allo",
-        "Location": "Downtown",
-        "Cuisine": "Italian",
+        "Name": "Mathis",
+        "Location": "Suburban",
+        "Cuisine": "Japanese",
         "Seating Capacity": 45,
-        "Experience": 5.0,
-        "Revenue": 4000000.0,
-        "Average Meal Price": 55.71
+        "Experience": 13.0,
+        "Revenue": 100000.0,
+        "Average Meal Price": 65.51
     },
     {
         "Name": "truc",
-        "Location": "Suburban",
-        "Cuisine": "Indian",
-        "Seating Capacity": 25,
-        "Experience": 5.0,
-        "Revenue": 100000.0,
-        "Average Meal Price": 31.66
-    },
-    {
-        "Name": "truc2",
-        "Location": "Downtown",
-        "Cuisine": "American",
-        "Seating Capacity": 5,
-        "Experience": 5.0,
-        "Revenue": 40000000.0,
-        "Average Meal Price": 45.6
-    },
-    {
-<<<<<<< Updated upstream
-        "Name": "F",
-        "Location": "Downtown",
-        "Cuisine": "Indian",
-        "Seating Capacity": 100,
-        "Experience": 12.0,
-        "Revenue": 1222222.0,
-        "Average Meal Price": 40.29
-=======
-        "Name": "ajdkas",
         "Location": "Rural",
         "Cuisine": "Mexican",
-        "Seating Capacity": 15,
-        "Experience": 7.0,
-        "Revenue": 24.0,
-        "Average Meal Price": 26.09
->>>>>>> Stashed changes
+        "Seating Capacity": 20,
+        "Experience": 6.0,
+        "Revenue": 700000.0,
+        "Average Meal Price": 35.76
     }
 ]

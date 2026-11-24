@@ -14,7 +14,8 @@ from sklearn.preprocessing import OneHotEncoder
 
 
 class MODEL:
-    def __init__(self,target_variable: str = "Average Meal Price", test_ratio: float = 0.2, random_state: int = 0):
+    def __init__(self,model_name: str = None, target_variable: str = "Average Meal Price", test_ratio: float = 0.2, random_state: int = 0):
+        self.model_name = model_name
         self.target_variable = target_variable
         self.test_ratio = test_ratio
         self.random_state = random_state
@@ -44,9 +45,13 @@ class MODEL:
         categorical_columns = df.select_dtypes(include=['object','string']).columns
         if is_training:
             # Lors de l'entrainement du modèle, ajuster l'encoder selon les colonnes 
+
+            # Début du code tiré de [1]
+            # https://www.geeksforgeeks.org/machine-learning/ml-one-hot-encoding/  
             encoded_data = self.encoder.fit_transform(df[categorical_columns])
             encoded_df = pd.DataFrame(encoded_data, columns=self.encoder.get_feature_names_out(categorical_columns))
             new_df = pd.concat([df.drop(columns=categorical_columns), encoded_df],axis=1)
+            # Fin du code tiré de [1]
             self.columns_names = list(new_df)
             return new_df
         else:
@@ -135,6 +140,8 @@ class MODEL:
         mse_trivial = mean_squared_error(y_val,y_pred)
  
         return mse_trivial
+    def __str__(self):
+        return f"Nom du modèle : {self.model_name}, métrique : {self.metrique:.3f}"
 class DRAW_MODEL(MODEL):
     def __init__(self,target_variable = "Average Meal Price", test_ratio = 0.2, random_state = 0):
         super().__init__(target_variable, test_ratio, random_state)
@@ -188,9 +195,9 @@ if __name__ == "__main__":
     df = pd.read_csv(fichier_csv)
 
     # 2. Instanciation et entraînement via la classe
-    modele = MODEL(target_variable="Average Meal Price", test_ratio=0.2, random_state=0)
+    modele = MODEL(model_name = "Restauration", target_variable="Average Meal Price", test_ratio=0.2, random_state=0)
     mse, y_val, y_pred = modele.train_and_eval(df)
-    print(f"Modèle entraîné avec succès. MSE : {mse:.2f}")
+    print(f"Modèle entraîné avec succès. MSE : {mse:.3f}")
 
     # 3. Sauvegarde
     model_path = os.path.join("donnees", "model_RandomForestRegression.sav")
@@ -212,8 +219,9 @@ if __name__ == "__main__":
     y_pred = np.array(y_pred)
     mse = np.mean((y_val - y_pred) ** 2)
 
-    print(f"MSE avec numpy : {mse:.2f}")
+    print(f"MSE avec numpy : {mse:.3f}")
 
     # 7. Calcule du MSE à l'aide du modèle trivial
     mse_trivial = modele.trivial_model(df)
-    print(f"Modèle entraîné avec succès. MSE Trivial : {mse_trivial:.2f}")
+    print(f"Modèle entraîné avec succès. MSE Trivial : {mse_trivial:.3f}")
+    print(modele)

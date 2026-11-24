@@ -10,10 +10,9 @@ import pytest
 sys.path.append(str(Path(__file__).resolve().parent.parent/"src"))
 from modele import MODEL
 
-
 @pytest.fixture
-def df_exemple():
-    """Jeu de données synthétique suffisant pour train_test_split (test_ratio=0.2)."""
+def df_sample() -> pd.DataFrame:
+    """Jeu de données synthétique réutilisable pour les tests."""
     return pd.DataFrame(
         {
             "Location": [
@@ -58,92 +57,121 @@ def df_exemple():
         }
     )
 
+def test_transform_train_vs_inference(df_sample: pd.DataFrame):
+    pipeline = MODEL()  # À adapter
+    df_train = df_sample.iloc[:6].copy()
+    df_val = df_sample.iloc[6:].copy()
+    df_val["categorie"] = ["NOUVELLE_CATEGORIE", "A"]
 
-# =====================================================================
-# 1. CAS USUELS
-# =====================================================================
+    df_train_enc = pipeline.transform(df_train, is_training=True)
+    df_val_enc = pipeline.transform(df_val, is_training=False)
+
+    assert isinstance(df_train_enc, pd.DataFrame)
+    assert isinstance(df_val_enc, pd.DataFrame)
+    assert list(df_val_enc.columns) == list(df_train_enc.columns)
+    assert len(df_val_enc) == len(df_val)
 
 
-def test_train_and_eval_retourne_mse_coherente(df_exemple):
-    """Vérifie l'entraînement et la cohérence numérique de la MSE retournée."""
-    modele = MODEL(target_variable="Average Meal Price", test_ratio=0.2, random_state=42)
-    mse, y_val, y_pred = modele.train_and_eval(df_exemple)
+def test_transform_cas_limites_dataframe_vide_et_modalite_unique(df_sample: pd.DataFrame):
+    pipeline = MODEL()  # À adapter
 
-    mse_attendu = float(np.mean((np.asarray(y_val) - np.asarray(y_pred)) ** 2))
-    assert isinstance(mse, float)
+    # Cas A : DataFrame vide avec les bonnes colonnes
+    df_vide = df_sample.iloc[0:0].copy()
+    res_vide = pipeline.transform(df_vide, is_training=True)
+    assert len(res_vide) == 0
+
+    # Cas B : une seule modalité unique dans la colonne catégorielle
+    df_mono_cat = df_sample.copy()
+    df_mono_cat["categorie"] = "UNIQUE"
+    res_mono = pipeline.transform(df_mono_cat, is_training=True)
+    assert len(res_mono) == len(df_mono_cat)
+
+
+# ---------------------------------------------------------------------------
+# 5 & 6. Tests de train_and_eval(self, df)
+# ---------------------------------------------------------------------------
+
+
+def test_train_and_eval_cas_usuel(df_sample: pd.DataFrame):
+    pipeline = MODEL()  # À adapter
+
+    mse, y_val, y_pred = pipeline.train_and_eval(df_sample)
+
+    assert isinstance(mse, (float, np.floating))
     assert mse >= 0.0
-    assert mse == pytest.approx(mse_attendu, rel=1e-9)
+    assert len(y_val) == len(y_pred)
+    assert len(y_val) > 0
+
+    # Vérification de cohérence de l'EQM avec pytest.approx
+    mse_calculee = float(np.mean((np.asarray(y_val) - np.asarray(y_pred)) ** 2))
+    assert mse == pytest.approx(mse_calculee, rel=1e-5, abs=1e-5)
 
 
-def test_predict_cas_usuel(df_exemple):
-    """Vérifie qu'une prédiction est produite avec la bonne forme et un flottant fini."""
-    modele = MODEL(target_variable="Average Meal Price", test_ratio=0.2, random_state=0)
-    modele.train_and_eval(df_exemple)
+def test_train_and_eval_donnees_insuffisantes_ou_cible_constante(df_sample: pd.DataFrame):
+    pipeline = MODEL()  # À adapter
 
-    resultat = modele.predict(["Downtown", "French", 60, 10.0, 850000.0])
-    assert resultat.shape == (1,)
-    assert float(resultat[0]) == pytest.approx(float(resultat[0]), rel=1e-6)
-    assert np.isfinite(resultat[0])
+    # Cas A : trop peu de lignes pour entraîner/évaluer
+    df_trop_petit = df_sample.iloc[:1].copy()
+    with pytest.raises(ValueError):
+        pipeline.train_and_eval(df_trop_petit)
+
+    # Cas B : présence de NaN non gérés
+    df_avec_nan = df_sample.copy()
+    df_avec_nan.loc[0, "num_1"] = np.nan
+    with pytest.raises(ValueError):
+        pipeline.train_and_eval(df_avec_nan)
 
 
-def test_save_genere_modele_et_metadonnees(tmp_path, df_exemple):
-    """Vérifie la sauvegarde du modèle (.sav) et du fichier JSON de métadonnées."""
-    modele = MODEL(target_variable="Average Meal Price", test_ratio=0.2, random_state=0)
-    mse, _, _ = modele.train_and_eval(df_exemple)
+# ---------------------------------------------------------------------------
+# 7 & 8. Tests de save(self, df, model_path, meta_path)
+# ---------------------------------------------------------------------------
 
-    model_path = tmp_path / "model.sav"
-    meta_path = tmp_path / "model.json"
-    modele.save(df_exemple, str(model_path), str(meta_path))
+
+def test_save_cas_usuel_modele_et_metadonnees(tmp_path: Path, df_sample: pd.DataFrame):
+    pipeline = MODEL()  # À adapter
+    mse, _, _ = pipeline.train_and_eval(df_sample)
+
+    model_path = tmp_path / "modele.joblib"
+    meta_path = tmp_path / "metadonnees.json"
+
+    pipeline.save(df_sample, str(model_path), str(meta_path))
 
     assert model_path.exists()
     assert meta_path.exists()
 
-    modele_recharge = joblib.load(model_path)
-    assert hasattr(modele_recharge, "predict")
+    modele_charge = joblib.load(model_path)
+    assert modele_charge is not None
 
     meta = json.loads(meta_path.read_text(encoding="utf-8"))
-    assert meta["nom_colonnes"] == list(df_exemple.columns)
-    assert set(meta["valeurs_location"]) == {"Downtown", "Suburban", "Rural"}
-    assert meta["erreur quadratique moyenne "] == pytest.approx(mse)
+    # À adapter : vérifier les clés exactes de votre dictionnaire de métadonnées
+    assert "categorical_values" in meta
+    assert "numeric_intervals" in meta
+    assert "mse" in meta
+    assert meta["mse"] == pytest.approx(mse, rel=1e-5, abs=1e-5)
+
+    # Exemple de vérification d'intervalle numérique (min / max)
+    borne_min, borne_max = meta["numeric_intervals"]["num_1"]
+    assert borne_min == pytest.approx(df_sample["num_1"].min())
+    assert borne_max == pytest.approx(df_sample["num_1"].max())
 
 
-# =====================================================================
-# 2. CAS LIMITES
-# =====================================================================
+def test_save_cas_limites_chemin_invalide_et_intervalle_nul(tmp_path: Path, df_sample: pd.DataFrame):
+    pipeline = MODEL()  # À adapter
+    pipeline.train_and_eval(df_sample)
 
+    # Cas A : dossier parent inexistant pour meta_path
+    chemin_invalide = tmp_path / "dossier_absent" / "meta.json"
+    with pytest.raises((FileNotFoundError, OSError)):
+        pipeline.save(df_sample, str(tmp_path / "modele.joblib"), str(chemin_invalide))
 
-def test_transform_valeurs_numeriques_flottantes_limites(df_exemple):
-    """Cas limite : valeurs numériques très petites ou nulles lors de transform(..., is_training=False)."""
-    modele = MODEL(target_variable="Average Meal Price", test_ratio=0.2, random_state=0)
-    X_raw = df_exemple.drop(columns=["Average Meal Price"])
-    modele.transform(X_raw, is_training=True)
+    # Cas B : variable numérique constante (min == max)
+    df_const = df_sample.copy()
+    df_const["num_1"] = 42.0
+    model_path = tmp_path / "modele_const.joblib"
+    meta_path = tmp_path / "meta_const.json"
 
-    entree_limite = pd.DataFrame(
-        {
-            "Location": ["Rural"],
-            "Cuisine": ["French"],
-            "Seating Capacity": [0],
-            "Chef Experience Years": [0.0],
-            "Revenue": [0.01],
-        }
-    )
-    X_trans = modele.transform(entree_limite, is_training=False)
-
-    assert len(X_trans) == 1
-    assert list(X_trans.columns) == modele.columns_names
-    assert X_trans.loc[0, "Seating Capacity"] == pytest.approx(0.0)
-    assert X_trans.loc[0, "Revenue"] == pytest.approx(0.01)
-
-
-# =====================================================================
-# 3. CAS D'ERREUR (pytest.raises)
-# =====================================================================
-
-
-def test_predict_categorie_inconnue_leve_value_error(df_exemple):
-    """Cas d'erreur : catégorie non vue à l'entraînement provoque une ValueError dans OneHotEncoder."""
-    modele = MODEL(target_variable="Average Meal Price", test_ratio=0.2, random_state=0)
-    modele.train_and_eval(df_exemple)
-
-    with pytest.raises(ValueError):
-        modele.predict(["Mars", "Martian", 50, 5.0, 300000.0])
+    pipeline.save(df_const, str(model_path), str(meta_path))
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    borne_min, borne_max = meta["numeric_intervals"]["num_1"]
+    assert borne_min == pytest.approx(42.0)
+    assert borne_max == pytest.approx(42.0)
