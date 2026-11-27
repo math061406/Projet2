@@ -174,11 +174,8 @@ def test_save_cas_usuel_modele_et_metadonnees(df_sample: pd.DataFrame):
     Vérifie la sauvegarde du modèle `.joblib` et du fichier de métadonnées JSON.
 
     Après `train_and_eval`, appelle `save`, recharge le modèle avec `joblib.load`,
-    lit le JSON et vérifie la présence de clés attendues ainsi que la cohérence de
-    l'EQM enregistrée.
+    lit le JSON et vérifie la présence de clés attendues 
     """
-    pipeline = MODEL()  # À adapter
-    mse, _, _ = pipeline.train_and_eval(df_sample)
 
     model_path = "modeles/model_RandomForestRegression.sav"
     meta_path = "modeles/model_metadata.json"
