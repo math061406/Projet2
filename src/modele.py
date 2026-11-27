@@ -19,7 +19,7 @@ class MODEL:
         self.target_variable = target_variable
         self.test_ratio = test_ratio
         self.random_state = random_state
-        self.encoder = OneHotEncoder(sparse_output=False)
+        self.encoder = OneHotEncoder(handle_unknown="ignore",sparse_output=False)
 
         
         # Si le prix d'un repas n'augmente pas de façon strictement proportionnelle par rapport aux variables numériques, 

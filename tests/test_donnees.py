@@ -7,12 +7,17 @@ import pytest
 sys.path.append(str(Path(__file__).resolve().parent.parent/"src"))
 from donnees import nettoyage
 
-# ---------------------------------------------------------------------------
-# 1 & 2. Tests de nettoyage(fichier_csv)
-# ---------------------------------------------------------------------------
+
 
 
 def test_nettoyage_cas_usuel():
+    """
+    Vérifie le fonctionnement de `nettoyage` sur le jeu de données complet.
+
+    Exécute le nettoyage sur `donnees/restaurant_data.csv`, puis contrôle que le
+    fichier nettoyé est créé, conserve le nombre de lignes initial et expose les
+    colonnes attendues dans le bon ordre.
+    """
 
     csv_entree = "donnees/restaurant_data.csv"
 
@@ -35,7 +40,13 @@ def test_nettoyage_cas_usuel():
 
 
 def test_nettoyage_fichier_inexistant_ou_colonne_manquante():
+    """
+    Vérifie que `nettoyage` lève les bonnes exceptions sur des entrées invalides.
 
+    Teste deux cas limites : l'absence du fichier CSV d'entrée (attend
+    `FileNotFoundError` ou `OSError`) et la suppression d'une colonne requise
+    (`Location`, attend `ValueError`).
+    """
     # Cas A : fichier inexistant
     with pytest.raises((FileNotFoundError, OSError)):
         nettoyage("donnees/fichier_inexistant.csv")
