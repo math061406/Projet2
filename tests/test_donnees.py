@@ -12,30 +12,46 @@ from donnees import nettoyage
 # ---------------------------------------------------------------------------
 
 
-def test_nettoyage_cas_usuel(tmp_path: Path, df_sample: pd.DataFrame):
-    csv_entree = "donnees/restaurant_data.csv"
-    df_sample.to_csv(csv_entree, index=False)
+def test_nettoyage_cas_usuel():
 
-    # À adapter : récupérer le chemin retourné ou la convention de nommage du fichier créé
+    csv_entree = "donnees/restaurant_data.csv"
+
+    # Lecture du fichier original
+    df_original = pd.read_csv(csv_entree)
+
+    # Exécution du nettoyage
     nettoyage(csv_entree)
-    csv_sortie = "donnees/restaurant_data_nettoyage.csv"
+
+    # Lecture du fichier nettoyé
+    csv_sortie = "donnees/restaurant_data_nettoye.csv"
     df_nettoye = pd.read_csv(csv_sortie)
 
-    # À adapter : liste exacte des colonnes attendues après sélection
     colonnes_attendues = ["Location", "Cuisine", "Seating Capacity", "Average Meal Price", "Chef Experience Years", "Revenue"]
+
+    # Vérifications
     assert Path(csv_sortie).exists()
     assert list(df_nettoye.columns) == colonnes_attendues
-    assert len(df_nettoye) == len(df_sample)
+    assert len(df_nettoye) == len(df_original)
 
 
-def test_nettoyage_fichier_inexistant_ou_colonne_manquante(tmp_path: Path, df_sample: pd.DataFrame):
+def test_nettoyage_fichier_inexistant_ou_colonne_manquante():
+
     # Cas A : fichier inexistant
     with pytest.raises((FileNotFoundError, OSError)):
-        nettoyage(str(tmp_path / "introuvable.csv"))
+        nettoyage("donnees/fichier_inexistant.csv")
 
     # Cas B : colonne requise manquante
-    csv_incomplet = tmp_path / "incomplet.csv"
-    df_sample.drop(columns=["num_1"]).to_csv(csv_incomplet, index=False)
+    csv_incomplet = "donnees/restaurant_data_incomplet.csv"
 
-    with pytest.raises((KeyError, ValueError)):
-        nettoyage(str(csv_incomplet))
+    # Lecture du fichier original
+    df_original = pd.read_csv("donnees/restaurant_data.csv")
+
+    # Suppression d'une colonne nécessaire
+    df_original = df_original.drop(columns=["Location"])
+
+    # Création du fichier incomplet
+    df_original.to_csv(csv_incomplet, index=False)
+
+    # Vérification que la ValueError est déclenchée
+    with pytest.raises(ValueError):
+        nettoyage(csv_incomplet)
