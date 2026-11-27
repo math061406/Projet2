@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from sklearn.ensemble import RandomForestRegressor
 from sklearn.dummy import DummyRegressor
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
@@ -16,7 +16,7 @@ from sklearn.preprocessing import OneHotEncoder
 class MODEL:
     def __init__(
         self,
-        model_name: str = None,
+        model_name: str | None = None,
         target_variable: str = "Average Meal Price",
         test_ratio: float = 0.2,
         random_state: int = 0,
