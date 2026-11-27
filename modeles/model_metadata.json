@@ -3,21 +3,22 @@
     "Location",
     "Cuisine",
     "Seating Capacity",
+    "Average Meal Price",
     "Chef Experience Years",
-    "Revenue",
-    "Average Meal Price"
+    "Revenue"
   ],
   "valeurs_location": [
+    "Rural",
     "Downtown",
-    "Suburban",
-    "Rural"
+    "Suburban"
   ],
   "valeurs_cuisine": [
-    "French",
-    "Italian",
+    "Japanese",
     "Mexican",
-    "American",
-    "Indian"
+    "Italian",
+    "Indian",
+    "French",
+    "American"
   ],
-  "erreur quadratique moyenne ": 25.460500000000014
+  "erreur quadratique moyenne ": 0.3919105555794479
 }
