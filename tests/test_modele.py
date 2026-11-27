@@ -195,5 +195,3 @@ def test_save_cas_limites_chemin_invalide_et_intervalle_nul(tmp_path: Path, df_s
     # Cas B : variable numérique constante (min == max)
     df_const = df_sample.copy()
     df_const["Seating Capacity"] = 39
-    model_path = tmp_path / "modele_const.joblib"
-    meta_path = tmp_path / "meta_const.json"
