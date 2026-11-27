@@ -44,11 +44,11 @@ class RPFApp(ctk.CTk):
         self.show_home()
 
         # Accès au modèle
-        self._load_modele = joblib.load("donnees/model_RandomForestRegression.sav")
+        self._load_modele = joblib.load("modeles/model_RandomForestRegression.sav")
         self._colonnes_modele = self._load_modele.feature_names_in_
 
         # Aller chercher les informations du fichier json
-        with open("donnees/model.json", "r", encoding="utf-8") as f:
+        with open("modeles/model_metadata.json", "r", encoding="utf-8") as f:
             model = json.load(f)
             self._liste_catégories = model["nom_colonnes"]
             self._liste_location = model["valeurs_location"]
@@ -632,8 +632,8 @@ class RPFApp(ctk.CTk):
         images_frame.grid_columnconfigure(0, weight=1)
 
         # Chargement des images
-        image1 = Image.open("donnees/model_prediction.jpg")
-        image2 = Image.open("donnees/model_heatmap.jpg")
+        image1 = Image.open("modeles/model_prediction.jpg")
+        image2 = Image.open("modeles/model_heatmap.jpg")
 
         # Conversion en CTkImage
         self._graphique1 = ctk.CTkImage(

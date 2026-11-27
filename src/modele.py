@@ -188,7 +188,7 @@ class DRAW_MODEL(MODEL):
         plt.xlabel("Valeurs réelles")
         plt.ylabel("Valeurs prédites")
         plt.title("Comparaison : Valeurs réelles vs Valeurs prédites")
-        plt.savefig("donnees/model_prediction.jpg")
+        plt.savefig("modeles/model_prediction.jpg")
         plt.tight_layout()
         plt.show()
 
@@ -208,7 +208,7 @@ class DRAW_MODEL(MODEL):
         # Dessin de la heatmap
         sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5)
         plt.title("Matrice de Corrélation des Variables Numériques")
-        plt.savefig("donnees/model_heatmap.jpg")
+        plt.savefig("modeles/model_heatmap.jpg")
         plt.tight_layout()
         plt.show()
 
@@ -229,8 +229,8 @@ if __name__ == "__main__":
     print(f"Modèle entraîné avec succès. MSE : {mse:.3f}")
 
     # 3. Sauvegarde
-    model_path = os.path.join("donnees", "model_RandomForestRegression.sav")
-    metadata_path = os.path.join("donnees", "model_metadata.json")
+    model_path = os.path.join("modeles", "model_RandomForestRegression.sav")
+    metadata_path = os.path.join("modeles", "model_metadata.json")
     modele.save(df, model_path, metadata_path)
 
     # 4. Test de prédiction.
