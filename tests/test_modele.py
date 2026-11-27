@@ -7,8 +7,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-sys.path.append(str(Path(__file__).resolve().parent.parent/"src"))
+sys.path.append(str(Path(__file__).resolve().parent.parent / "src"))
 from modele import MODEL
+
 
 @pytest.fixture
 def df_sample() -> pd.DataFrame:
@@ -40,7 +41,18 @@ def df_sample() -> pd.DataFrame:
                 "Indian",
             ],
             "Seating Capacity": [50, 80, 40, 120, 60, 30, 90, 70, 45, 110],
-            "Chef Experience Years": [10.0, 5.0, 3.0, 15.0, 8.0, 2.0, 12.0, 6.0, 4.0, 14.0],
+            "Chef Experience Years": [
+                10.0,
+                5.0,
+                3.0,
+                15.0,
+                8.0,
+                2.0,
+                12.0,
+                6.0,
+                4.0,
+                14.0,
+            ],
             "Revenue": [
                 800000.0,
                 450000.0,
@@ -53,9 +65,21 @@ def df_sample() -> pd.DataFrame:
                 250000.0,
                 1200000.0,
             ],
-            "Average Meal Price": [45.0, 28.0, 18.0, 60.0, 32.0, 16.0, 50.0, 30.0, 20.0, 55.0],
+            "Average Meal Price": [
+                45.0,
+                28.0,
+                18.0,
+                60.0,
+                32.0,
+                16.0,
+                50.0,
+                30.0,
+                20.0,
+                55.0,
+            ],
         }
     )
+
 
 def test_transform_train_vs_inference(df_sample: pd.DataFrame):
     """
@@ -69,7 +93,6 @@ def test_transform_train_vs_inference(df_sample: pd.DataFrame):
     df_train = df_sample.iloc[:6].copy()
     df_val = df_sample.iloc[6:].copy()
 
-    
     df_val["Cuisine"] = ["French", "Italian", "Indian", "American"]
 
     df_train_enc = pipeline.transform(df_train, is_training=True)
@@ -80,15 +103,16 @@ def test_transform_train_vs_inference(df_sample: pd.DataFrame):
     assert list(df_val_enc.columns) == list(df_train_enc.columns)
 
 
-def test_transform_cas_limites_dataframe_vide_et_modalite_unique(df_sample: pd.DataFrame):
+def test_transform_cas_limites_dataframe_vide_et_modalite_unique(
+    df_sample: pd.DataFrame,
+):
     """
     Vérifie le comportement de `transform` lorsqu'une catégorie n'a qu'une modalité.
 
     Assigne une valeur unique (`"French"`) à `Cuisine` et contrôle que `transform`
     conserve le nombre de lignes du `DataFrame`.
     """
-    pipeline = MODEL()  
-
+    pipeline = MODEL()
 
     # une seule modalité unique dans la colonne catégorielle
     df_mono_cat = df_sample.copy()
@@ -139,6 +163,7 @@ def test_train_and_eval_cible_constante(df_sample: pd.DataFrame):
     assert isinstance(mse, (int, float, np.floating))
     assert mse >= 0.0
 
+
 # ---------------------------------------------------------------------------
 # 7 & 8. Tests de save(self, df, model_path, meta_path)
 # ---------------------------------------------------------------------------
@@ -156,11 +181,9 @@ def test_save_cas_usuel_modele_et_metadonnees(df_sample: pd.DataFrame):
     mse, _, _ = pipeline.train_and_eval(df_sample)
 
     model_path = "donnees/model_RandomForestRegression.joblib"
-    meta_path =  "donnees/model_metadata.json"
+    meta_path = "donnees/model_metadata.json"
 
     pipeline.save(df_sample, model_path, meta_path)
-
-
 
     modele_charge = joblib.load(model_path)
     assert modele_charge is not None
@@ -176,8 +199,9 @@ def test_save_cas_usuel_modele_et_metadonnees(df_sample: pd.DataFrame):
     assert meta["erreur quadratique moyenne "] == pytest.approx(mse, rel=1e-5, abs=1e-5)
 
 
-
-def test_save_cas_limites_chemin_invalide_et_intervalle_nul(tmp_path: Path, df_sample: pd.DataFrame):
+def test_save_cas_limites_chemin_invalide_et_intervalle_nul(
+    tmp_path: Path, df_sample: pd.DataFrame
+):
     """
     Vérifie la gestion d'un dossier parent inexistant et d'une variable constante lors de `save`.
 

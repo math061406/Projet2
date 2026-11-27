@@ -4,10 +4,8 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-sys.path.append(str(Path(__file__).resolve().parent.parent/"src"))
+sys.path.append(str(Path(__file__).resolve().parent.parent / "src"))
 from donnees import nettoyage
-
-
 
 
 def test_nettoyage_cas_usuel():
@@ -31,7 +29,14 @@ def test_nettoyage_cas_usuel():
     csv_sortie = "donnees/restaurant_data_nettoye.csv"
     df_nettoye = pd.read_csv(csv_sortie)
 
-    colonnes_attendues = ["Location", "Cuisine", "Seating Capacity", "Average Meal Price", "Chef Experience Years", "Revenue"]
+    colonnes_attendues = [
+        "Location",
+        "Cuisine",
+        "Seating Capacity",
+        "Average Meal Price",
+        "Chef Experience Years",
+        "Revenue",
+    ]
 
     # Vérifications
     assert Path(csv_sortie).exists()

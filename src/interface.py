@@ -156,15 +156,15 @@ class RPFApp(ctk.CTk):
         if hasattr(self, "_content"):
             self._content.destroy()
 
-        self._content = ctk.CTkScrollableFrame(self, fg_color=self.bg_color, corner_radius=0)
+        self._content = ctk.CTkScrollableFrame(
+            self, fg_color=self.bg_color, corner_radius=0
+        )
 
         self._content.grid(row=0, column=1, sticky="nsew", padx=30, pady=30)
-
 
     # -----------------------------
     # PAGE ACCUEIL
     # -----------------------------
-
 
     def show_home(self):
         """Cette méthode se produit lorsque le bouton "Home" du menu d'accueil est activé par l'utilisateur.
@@ -248,8 +248,8 @@ class RPFApp(ctk.CTk):
     def show_new_analysis(self):
         """Cette méthode est appelé lorsque l'utilisateur clique sur le bouton "Nouvelle analyse". On efface
         donc l'ancien contenu avec la méthode clear_content_scrollable_frame pour avoir un défilement vertical.
-        Cette méthode crée 6 questions en "Entry" ou "OptionMenu" pour les données qualitatives. 
-        On enregistre chacune des données dans la classe comme attributs pour être réutiliser lors de l'appui 
+        Cette méthode crée 6 questions en "Entry" ou "OptionMenu" pour les données qualitatives.
+        On enregistre chacune des données dans la classe comme attributs pour être réutiliser lors de l'appui
         du lancement de la prédiction."""
 
         self.clear_content_scrollable_frame()
@@ -591,15 +591,12 @@ class RPFApp(ctk.CTk):
 
         # Transformer les catégories en colonnes numériques
         liste_valeurs = pd.get_dummies(
-            liste_valeurs,
-            columns=["Location", "Cuisine"],
-            dtype=int
+            liste_valeurs, columns=["Location", "Cuisine"], dtype=int
         )
 
         # Aligner les colonnes avec celles du modèle
         liste_valeurs = liste_valeurs.reindex(
-            columns=self._colonnes_modele,
-            fill_value=0
+            columns=self._colonnes_modele, fill_value=0
         )
 
         # Effectuer la prédiction
@@ -616,11 +613,7 @@ class RPFApp(ctk.CTk):
         # GRAPHIQUES
         # -----------------------------
 
-        graphs_frame = ctk.CTkFrame(
-            self._content,
-            fg_color="white",
-            corner_radius=15
-        )
+        graphs_frame = ctk.CTkFrame(self._content, fg_color="white", corner_radius=15)
 
         graphs_frame.pack(fill="x", pady=15)
 
@@ -628,14 +621,11 @@ class RPFApp(ctk.CTk):
             graphs_frame,
             text="Analysis graphs",
             font=("Arial", 18, "bold"),
-            text_color=self.text_color
+            text_color=self.text_color,
         ).pack(anchor="w", padx=25, pady=(20, 10))
 
         # Conteneur des deux graphiques
-        images_frame = ctk.CTkFrame(
-            graphs_frame,
-            fg_color="transparent"
-        )
+        images_frame = ctk.CTkFrame(graphs_frame, fg_color="transparent")
 
         images_frame.pack(fill="x", padx=15, pady=10)
 
@@ -647,29 +637,21 @@ class RPFApp(ctk.CTk):
 
         # Conversion en CTkImage
         self._graphique1 = ctk.CTkImage(
-            light_image=image1,
-            dark_image=image1,
-            size=(700, 490)
+            light_image=image1, dark_image=image1, size=(700, 490)
         )
 
         self._graphique2 = ctk.CTkImage(
-            light_image=image2,
-            dark_image=image2,
-            size=(700, 490)
+            light_image=image2, dark_image=image2, size=(700, 490)
         )
 
         # Affichage
-        ctk.CTkLabel(
-            images_frame,
-            text="",
-            image=self._graphique1
-        ).grid(row=0, column=0, padx=10, pady=10)
+        ctk.CTkLabel(images_frame, text="", image=self._graphique1).grid(
+            row=0, column=0, padx=10, pady=10
+        )
 
-        ctk.CTkLabel(
-            images_frame,
-            text="",
-            image=self._graphique2
-        ).grid(row=1, column=0, padx=10, pady=10)
+        ctk.CTkLabel(images_frame, text="", image=self._graphique2).grid(
+            row=1, column=0, padx=10, pady=10
+        )
 
     def afficher_resultats(self, donnees: dict):
         """Une fois le temps de chargement terminé, cette méthode est appelé. Elle efface l'ancien contenu
@@ -774,7 +756,7 @@ class RPFApp(ctk.CTk):
             return []
 
     def sauvegarder_historique(self):
-        """Cette méthode sert à sauvegarder les données dans l'historique du fichier json. L'historique ayant potentiellement 
+        """Cette méthode sert à sauvegarder les données dans l'historique du fichier json. L'historique ayant potentiellement
         eu des données d'ajoutés, il crée ou recrée un nouveau fichier json avec toutes les informations de l'historique."""
         with open("donnees/historique.json", "w", encoding="utf-8") as f:
             json.dump(self._historique, f, indent=4, ensure_ascii=False)
